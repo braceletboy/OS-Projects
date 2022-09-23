@@ -1,0 +1,30 @@
+a) Platform: Ubuntu 20.04 LTS
+   Experience: We faced two errors while compiling the code. The following are
+   the errors
+   1) fatal error: bits/libc-header-start.h: No such file or directory
+   2) fatal error: bits/c++config.h: No such file or directory
+
+   We solved these errors by installing gcc-multilib and g++-multilib using the
+   apt package manager.
+
+b) Experience: The first test gave the output as expected. The second test gave
+               an output as follows - "Machine halting!". The third test put us
+               in to debugging mode/single-step mode.
+
+c) Thread class Description:
+   This class represents a single thread of execution in nachos. It has five
+   member variables:
+   1) stackTop - Pointer to the top of the execution stack
+   2) machineState - The state of the machine registers
+   3) stack - Pointer to the bottom of the execution stack
+   4) status - Status of the thread
+   5) name - Name of the thread
+
+   It has 8 public member functions - Fork, Yield, Sleep, Finish,
+   CheckOverflow, setStatus, getName, Print. One private member function -
+   StackAllocate. 
+
+   Finally, if a user program is running an additional state is tracked for the
+   user mode with the variable userRegisters. It also has a variable 'space'
+   pointing to the user code. It also has two more public functions to save and
+   restore user state.
