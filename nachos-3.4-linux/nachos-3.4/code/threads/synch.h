@@ -67,7 +67,11 @@ class Lock {
   public:
     Lock(const char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
+#ifdef HW1_LOCKS
+    const char* getName() { return name; }
+#else
     char* getName() { return name; }	// debugging assist
+#endif
 
     void Acquire(); // these are the only operations on a lock
     void Release(); // they are both *atomic*
@@ -78,8 +82,14 @@ class Lock {
 					// Condition variable ops below.
 
   private:
+#ifdef HW1_LOCKS
+    const char* name;  // for debugging
+    Thread *acquiredThread;  // thread that acquired the lock
+    List *queue;      // threads waiting to acquire the lock
+#else
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+#endif
 };
 
 // The following class defines a "condition variable".  A condition

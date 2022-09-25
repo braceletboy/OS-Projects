@@ -59,7 +59,8 @@ extern int testnum;
 
 // External functions used by this file
 
-#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES)
+#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
+		defined(HW1_LOCKS)
 extern void ThreadTest(int), Copy(char *unixFile, char *nachosFile);
 #else
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
@@ -104,7 +105,8 @@ main(int argc, char **argv)
         break;
       }
     }
-#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES)
+#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
+		defined(HW1_LOCKS)
 		ThreadTest(4);
 #else
     ThreadTest();

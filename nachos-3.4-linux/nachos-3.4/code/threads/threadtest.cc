@@ -12,7 +12,7 @@
 #include "copyright.h"
 #include "system.h"
 
-#if defined(HW1_SEMAPHORES)
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
 #include "synch.h"
 #endif
 
@@ -57,6 +57,40 @@ SimpleThread(int which)
     binary_semaphore_ct->V();
     if(completed_threads < nthreads){barrier->P();}
     barrier->V();
+
+    // print the final value
+    val = SharedVariable;
+    printf("Thread %d sees final value %d\n", which, val);
+}
+#elif defined(HW1_LOCKS)
+int SharedVariable;  // global int variables are Zero-initialized
+Lock *mutex = new Lock("mutex-SharedVariable");
+
+int nthreads;
+int completed_threads;
+Lock *mutex_ct = new Lock("mutex-completed_threads");
+
+void
+SimpleThread(int which)
+{
+    int num, val;
+    for(num = 0; num < 5; num++){
+        mutex->Acquire();
+        val = SharedVariable;
+        printf("*** thread %d sees value %d\n", which, val);
+        currentThread->Yield();
+        SharedVariable = val + 1;
+        mutex->Release();
+        currentThread->Yield();
+    }
+
+    // check for completion of all threads
+    mutex_ct->Acquire();
+    completed_threads++;
+    mutex_ct->Release();
+
+    // busy-waiting barrier without using a semaphore
+    while(completed_threads < nthreads) { currentThread->Yield(); }
 
     // print the final value
     val = SharedVariable;
@@ -113,11 +147,12 @@ ThreadTest1()
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
 
-#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES)
+#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
+    defined(HW1_LOCKS)
 void
 ThreadTest(int num_child_threads)
 {
-#if defined(HW1_SEMAPHORES)
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
     nthreads = num_child_threads + 1;
 #endif
     DEBUG('h', "Entering homework ThreadTest");

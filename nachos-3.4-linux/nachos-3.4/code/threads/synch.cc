@@ -97,6 +97,93 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
+#ifdef HW1_LOCKS
+//----------------------------------------------------------------------
+// Lock::Lock
+//  Initialize a lock, so that it can be used for synchronization.
+//
+//	"debugName" is an arbitrary name, useful for debugging.
+//----------------------------------------------------------------------
+Lock::Lock(const char* debugName)
+{
+    name = debugName;
+    acquiredThread = NULL;
+    queue = new List;
+}
+
+//----------------------------------------------------------------------
+// Lock::~Lock()
+//  De-allocate lock, when no longer needed. Assume no one
+//  is still waiting on the lock.
+//----------------------------------------------------------------------
+
+Lock::~Lock()
+{
+    delete queue;
+}
+
+//----------------------------------------------------------------------
+// Lock::Acquire()
+//  Acquire the lock if free. Otherwise the thread trying to
+//  acquire the lock is put to sleep until it free again.
+//  So this lock is not a spin lock.
+//
+//  Some corner cases:
+//   A thread owning a lock should not try to acquire it again.
+//   Otherwise, it will lead to a deadlock.
+//   This specification is similar to std::mutex.
+//   We can say that this Lock is not a re-entrant lock.
+//----------------------------------------------------------------------
+
+void Lock::Acquire()
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    while (acquiredThread != NULL)
+    {
+        queue->Append((void *) currentThread);  // lock is BUSY
+        currentThread->Sleep();                 // so put to sleep
+    }
+    acquiredThread = currentThread;             // lock available
+
+    (void) interrupt->SetLevel(oldLevel);  // ignore output - so cast to void
+}
+
+//----------------------------------------------------------------------
+// Lock::Release()
+//  Release the lock if called by the lock's owner. If any other thread
+//  that doesn't hold the lock tries to release the lock, nothing happens.
+//----------------------------------------------------------------------
+
+void Lock::Release()
+{
+    // release lock only if the thread owning the lock releases it
+    // otherwise do nothing
+    if (isHeldByCurrentThread())
+    {
+        Thread *thread;
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+        thread = (Thread *)queue->Remove();
+        if (thread != NULL) scheduler->ReadyToRun(thread);
+        acquiredThread = NULL;   // lock is free
+
+        (void) interrupt->SetLevel(oldLevel);
+    }
+}
+
+//----------------------------------------------------------------------
+// Lock::isHeldByCurrentThread()
+//  If the current thread is the thread that acquired the lock,
+//  then return true. Otherwise return false.
+//----------------------------------------------------------------------
+
+bool Lock::isHeldByCurrentThread()
+{
+    return (currentThread == acquiredThread);
+}
+
+#else
 // Dummy functions -- so we can compile our later assignments 
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
@@ -104,6 +191,7 @@ Lock::Lock(const char* debugName) {}
 Lock::~Lock() {}
 void Lock::Acquire() {}
 void Lock::Release() {}
+#endif
 
 Condition::Condition(const char* debugName) { }
 Condition::~Condition() { }
