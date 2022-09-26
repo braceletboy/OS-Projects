@@ -97,7 +97,7 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-#ifdef HW1_LOCKS
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
 //----------------------------------------------------------------------
 // Lock::Lock
 //  Initialize a lock, so that it can be used for synchronization.
@@ -193,8 +193,134 @@ void Lock::Acquire() {}
 void Lock::Release() {}
 #endif
 
+#ifdef HW1_CONDITIONS
+//----------------------------------------------------------------------
+// Condition::Condition(const char* debugName)
+// 	Initialize a condition variable, so that it can be used for
+//  synchronization.
+//
+//  The purpose of a condition variable is to allow threads to
+//  put themselves in a queue until a 'condition' (defined by
+//  the state of execution) is met.
+//
+//  When the 'condition' is satisfied a different thread will wake
+//  one of the sleeping threads and thus allow them to continue.
+//
+//	"debugName" is an arbitrary name, useful for debugging.
+//----------------------------------------------------------------------
+Condition::Condition(const char* debugName)
+{
+    name = debugName;
+    queue = new List;
+}
+
+//----------------------------------------------------------------------
+// Condition::~Condition()
+//  De-allocate condition when no longer needed. Assume no one is
+//  still waiting on the condition.
+//----------------------------------------------------------------------
+
+Condition::~Condition()
+{
+    delete queue;
+}
+
+//----------------------------------------------------------------------
+// Condition::Wait(Lock* conditionLock)
+//  This condition variable is similar in specification to the
+//  std::condition_variable. A thread should only call wait when the
+//  lock passed to the wait function is owned by the same thread.
+//  Otherwise its undefined behaviour - in this specific implementation
+//  nothing happens)
+//
+//  The following are the steps in wait:
+//   a) Atomically - Release the lock and put the calling thread
+//      the wait to sleep
+//   b) Reacquire the same lock before returning to the calling thread
+//
+//  "conditionLock" is the lock associated with the 'condition'
+//----------------------------------------------------------------------
+
+void Condition::Wait(Lock* conditionLock)
+{
+    if(conditionLock->isHeldByCurrentThread())
+    {
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+        // release lock and sleep thread
+        conditionLock->Release();
+        queue->Append((void *)currentThread);
+        currentThread->Sleep();
+
+        (void) interrupt->SetLevel(oldLevel);
+
+        // re-acquire lock
+        conditionLock->Acquire();
+    }
+}
+
+//----------------------------------------------------------------------
+// Condition::Signal(Lock* conditionLock)
+//  Wake up a thread waiting on the condition and put it in ready into
+//  the ready to run queue. Of course, this thread will also be removed
+//  from waiting queue maintained by the condition.
+//
+//  Signalling is done by a currently running thread if it sees that
+//  the state of the condition is changed. Of course, the change in the
+//  state of the condition doesn't guarantee that the woken up thread,
+//  when it runs, sees the condition state it desires.
+//
+//  A thread can only call signal if it owns the lock being passed to
+//  the signal function. Otherwise the behaviour is undefined similar
+//  to the specification of std::condition_variable (in this specific
+//  implementation nothing happens)
+//
+//  "conditionLock" is the lock associated with the 'condition'
+//----------------------------------------------------------------------
+
+void Condition::Signal(Lock* conditionLock)
+{
+    if(conditionLock->isHeldByCurrentThread())
+    {
+        Thread* thread;
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+        thread = (Thread *)queue->Remove();
+        if (thread != NULL) scheduler->ReadyToRun(thread);
+
+        (void) interrupt->SetLevel(oldLevel);
+    }
+}
+
+//----------------------------------------------------------------------
+// Condition::Broadcast(Lock* conditionLock)
+//  Signal all the waiting threads
+//
+//  "conditionLock" is the lock associated with the 'condition'
+//----------------------------------------------------------------------
+
+void Condition::Broadcast(Lock* conditionLock)
+{
+    if(conditionLock->isHeldByCurrentThread())
+    {
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+        // signal all the waiting threads
+        while(!queue->IsEmpty())
+        {
+            Thread* thread;
+            thread = (Thread *)queue->Remove();
+            if(thread != NULL) scheduler->ReadyToRun(thread);
+        }
+
+        (void) interrupt->SetLevel(oldLevel);
+    }
+}
+
+#else
 Condition::Condition(const char* debugName) { }
 Condition::~Condition() { }
 void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
 void Condition::Signal(Lock* conditionLock) { }
 void Condition::Broadcast(Lock* conditionLock) { }
+#endif

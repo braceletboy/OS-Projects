@@ -67,7 +67,7 @@ class Lock {
   public:
     Lock(const char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
-#ifdef HW1_LOCKS
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
     const char* getName() { return name; }
 #else
     char* getName() { return name; }	// debugging assist
@@ -82,7 +82,7 @@ class Lock {
 					// Condition variable ops below.
 
   private:
-#ifdef HW1_LOCKS
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
     const char* name;  // for debugging
     Thread *acquiredThread;  // thread that acquired the lock
     List *queue;      // threads waiting to acquire the lock
@@ -129,7 +129,11 @@ class Condition {
     Condition(const char* debugName);		// initialize condition to 
 					// "no one waiting"
     ~Condition();			// deallocate the condition
+#ifdef HW1_CONDITIONS
+    const char* getName() { return (name); }
+#else
     char* getName() { return (name); }
+#endif
     
     void Wait(Lock *conditionLock); 	// these are the 3 operations on 
 					// condition variables; releasing the 
@@ -140,7 +144,12 @@ class Condition {
 					// these operations
 
   private:
+#ifdef HW1_CONDITIONS
+    const char* name;
+    List *queue;
+#else
     char* name;
     // plus some other stuff you'll need to define
+#endif
 };
 #endif // SYNCH_H

@@ -12,7 +12,7 @@
 #include "copyright.h"
 #include "system.h"
 
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
 #include "synch.h"
 #endif
 
@@ -62,13 +62,17 @@ SimpleThread(int which)
     val = SharedVariable;
     printf("Thread %d sees final value %d\n", which, val);
 }
-#elif defined(HW1_LOCKS)
+#elif defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
 int SharedVariable;  // global int variables are Zero-initialized
 Lock *mutex = new Lock("mutex-SharedVariable");
 
 int nthreads;
 int completed_threads;
 Lock *mutex_ct = new Lock("mutex-completed_threads");
+
+#ifdef HW1_CONDITIONS
+Condition *condvar_ct = new Condition("condition variable-completed_threads");
+#endif
 
 void
 SimpleThread(int which)
@@ -84,6 +88,16 @@ SimpleThread(int which)
         currentThread->Yield();
     }
 
+#ifdef HW1_CONDITIONS
+    // check for completion of all threads
+    mutex_ct->Acquire();
+    completed_threads++;
+
+    // blocking barrier using a condition variable
+    while(completed_threads < nthreads) { condvar_ct->Wait(mutex_ct); }
+    condvar_ct->Broadcast(mutex_ct);
+    mutex_ct->Release();
+#else
     // check for completion of all threads
     mutex_ct->Acquire();
     completed_threads++;
@@ -91,6 +105,7 @@ SimpleThread(int which)
 
     // busy-waiting barrier without using a semaphore
     while(completed_threads < nthreads) { currentThread->Yield(); }
+#endif
 
     // print the final value
     val = SharedVariable;
@@ -148,11 +163,11 @@ ThreadTest1()
 //----------------------------------------------------------------------
 
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
-    defined(HW1_LOCKS)
+		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
 void
 ThreadTest(int num_child_threads)
 {
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
     nthreads = num_child_threads + 1;
 #endif
     DEBUG('h', "Entering homework ThreadTest");
