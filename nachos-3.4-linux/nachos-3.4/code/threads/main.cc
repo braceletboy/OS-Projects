@@ -93,11 +93,23 @@ main(int argc, char **argv)
     (void) Initialize(argc, argv);
     
 #ifdef THREADS
+
+#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
+		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
+		int n = 0;
+#endif
+
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
       case 'q':
         testnum = atoi(argv[1]);
+
+#if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
+		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
+				n = testnum;
+#endif
+
         argCount++;
         break;
       default:
@@ -105,9 +117,10 @@ main(int argc, char **argv)
         break;
       }
     }
+
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
 		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
-		ThreadTest(4);
+		ThreadTest(n);
 #else
     ThreadTest();
 #endif
