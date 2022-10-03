@@ -58,6 +58,9 @@ extern int testnum;
 #endif
 
 // External functions used by this file
+#if defined(HW1_ELEVATOR)
+extern Thread* Elevator(int), * ArrivingFromGoingTo(int, int, int);
+#endif
 
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
 		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
@@ -95,7 +98,7 @@ main(int argc, char **argv)
 #ifdef THREADS
 
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
-		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
+		defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
 		int n = 0;
 #endif
 
@@ -106,7 +109,7 @@ main(int argc, char **argv)
         testnum = atoi(argv[1]);
 
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
-		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
+		defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
 				n = testnum;
 #endif
 
@@ -120,7 +123,15 @@ main(int argc, char **argv)
 
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
 		defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
+		ASSERT(n > 0)
 		ThreadTest(n);
+#elif defined(HW1_ELEVATOR)
+		ASSERT(n > 0)
+		Thread* elevatorThread = Elevator(n);
+		Thread* personThread0 = ArrivingFromGoingTo(0, 2, 4);
+		Thread* personThread1 = ArrivingFromGoingTo(1, 3, 7);
+		Thread* personThread2 = ArrivingFromGoingTo(2, 8, 1);
+		Thread* personThread3 = ArrivingFromGoingTo(3, 4, 10);
 #else
     ThreadTest();
 #endif
