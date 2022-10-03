@@ -59,7 +59,8 @@ extern int testnum;
 
 // External functions used by this file
 #if defined(HW1_ELEVATOR)
-extern Thread* Elevator(int), * ArrivingFromGoingTo(int, int, int);
+extern Thread* Elevator(int), * ArrivingGoingFromTo(int, int, int);
+extern void ElevatorTest(int, int);
 #endif
 
 #if defined(HW1_MULTIPLE_THREADS) || defined(HW1_SEMAPHORES) || \
@@ -127,11 +128,7 @@ main(int argc, char **argv)
 		ThreadTest(n);
 #elif defined(HW1_ELEVATOR)
 		ASSERT(n > 0)
-		Thread* elevatorThread = Elevator(n);
-		Thread* personThread0 = ArrivingFromGoingTo(0, 2, 4);
-		Thread* personThread1 = ArrivingFromGoingTo(1, 3, 7);
-		Thread* personThread2 = ArrivingFromGoingTo(2, 8, 1);
-		Thread* personThread3 = ArrivingFromGoingTo(3, 4, 10);
+		ElevatorTest(20, n);
 #else
     ThreadTest();
 #endif
