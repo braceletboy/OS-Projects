@@ -169,18 +169,18 @@ void
 ThreadTest(int num_child_threads)
 {
 #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(HW1_CONDITIONS)
-    nthreads = num_child_threads + 1;
+    nthreads = num_child_threads;
 #endif
     DEBUG('h', "Entering homework ThreadTest");
 
     Thread** thread_tracker = new Thread*[num_child_threads];
-    for(int idx = 0; idx < num_child_threads; idx++)
+    for(int idx = 1; idx < num_child_threads; idx++)
     {
         DEBUG('h', "Forking thread %d\n", idx);
         char threadName[100];
         sprintf(threadName, "Forked Thread %d", idx);
         thread_tracker[idx] = new Thread(threadName);
-        thread_tracker[idx]->Fork(SimpleThread, idx+1);
+        thread_tracker[idx]->Fork(SimpleThread, idx);
     }
     SimpleThread(0);
 }

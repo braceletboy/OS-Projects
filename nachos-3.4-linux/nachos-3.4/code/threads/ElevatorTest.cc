@@ -1,3 +1,4 @@
+#ifdef HW1_ELEVATOR
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"
@@ -6,6 +7,7 @@
 void ElevatorTest(int numFloors, int numPersons) {
 
     // Create elevator thread
+    Elevator(numFloors);
 
     for (int i = 0 ; i < numPersons; i++) {
         int atFloor = (Random() % numFloors) + 1; // choose a random atFloor
@@ -16,10 +18,12 @@ void ElevatorTest(int numFloors, int numPersons) {
 
         ArrivingGoingFromTo(atFloor, toFloor);
 
-        // for(int i =0 ; i< 1000000; i++) {
-        //     currentThread->Yield();
-        // }
+        for(int i =0 ; i< 10; i++) {
+            currentThread->Yield();
+        }
+        // currentThread->Yield();
     }
 
-    Elevator(numFloors);
 }
+
+#endif

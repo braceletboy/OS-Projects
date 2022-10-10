@@ -1,6 +1,6 @@
 // elevator.h
 //  
-
+#ifdef HW1_ELEVATOR
 #ifndef ELEVATOR_H
 #define ELEVATOR_H
 
@@ -16,4 +16,5 @@ struct PersonAttributes
 void Elevator(int numFloors);
 void ArrivingGoingFromTo(int atFloor, int toFloor);
 
+#endif
 #endif

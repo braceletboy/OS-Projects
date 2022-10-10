@@ -37,7 +37,7 @@ void elevator_subroutine(int numFloors)
     {
         // go to sleep if there are no persons to serve
         mutexWakeup->Acquire();
-        printf("personsActive: %d\n", personsActive);
+        DEBUG('h', "personsActive: %d\n", personsActive);
         while(personsActive == 0) condvarWakeup->Wait(mutexWakeup);
         mutexWakeup->Release();
 

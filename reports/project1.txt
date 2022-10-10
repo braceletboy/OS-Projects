@@ -1,0 +1,11 @@
+Exercise 1: Completed.
+Use HW1_SEMAPHORES to test the final version.
+Use HW1_MULTIPLE_THREADS to test the version with only the first change, which changes ThreadTest to fork n threads.
+
+Exercise 2: Completed. Use HW1_LOCKS to compile. The lock is used as mutex lock for the variable SharedVariable instead of semaphore.
+
+Exercise 3: Completed. Use HW1_CONDITIONS to complile. The condition variable is used to make the barrier instead of using semaphore.
+
+Exercise 4: Completed. Use HW1_ELEVATOR to compile.
+
+To run the program for each exercise, go to folder `threads` and use the command: ./nachos -q <number-of-threads-or-persons>
