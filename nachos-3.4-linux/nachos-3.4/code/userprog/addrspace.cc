@@ -168,7 +168,7 @@ AddrSpace::AddrSpace(AddrSpace* space) {
 
     // 2. Check if there is enough free memory to make the copy. IF not, fail
     ASSERT(n <= mm->GetFreePageCount());
-    // Change this to informiing caller that constructor failed using valid=false;
+    // Change this to informing caller that constructor failed using valid=false;
 
     // 3. Create a new pagetable of same size as source addr space
     pageTable = new TranslationEntry[n];
@@ -199,7 +199,7 @@ AddrSpace::AddrSpace(AddrSpace* space) {
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
-// 	Dealloate an address space.  Nothing for now!
+// 	Deallocate an address space.  Nothing for now!
 //----------------------------------------------------------------------
 
 AddrSpace::~AddrSpace()

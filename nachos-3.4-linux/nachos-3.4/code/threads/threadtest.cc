@@ -177,7 +177,7 @@ ThreadTest(int num_child_threads)
     for(int idx = 1; idx < num_child_threads; idx++)
     {
         DEBUG('h', "Forking thread %d\n", idx);
-        char threadName[100];
+        char = new threadName[100];
         sprintf(threadName, "Forked Thread %d", idx);
         thread_tracker[idx] = new Thread(threadName);
         thread_tracker[idx]->Fork(SimpleThread, idx);
