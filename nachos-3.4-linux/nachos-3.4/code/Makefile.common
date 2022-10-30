@@ -73,6 +73,7 @@ THREAD_O =main.o list.o scheduler.o synch.o synchlist.o system.o thread.o \
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
+	../userprog/memorymanager.h\
 	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../machine/console.h\
@@ -82,6 +83,7 @@ USERPROG_H = ../userprog/addrspace.h\
 
 USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/bitmap.cc\
+	../userprog/memorymanager.cc\
 	../userprog/exception.cc\
 	../userprog/progtest.cc\
 	../machine/console.cc\
