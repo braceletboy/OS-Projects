@@ -72,11 +72,25 @@ enum ExceptionType { NoException,           // Everything ok!
 #define NumTotalRegs 	40
 
 // The following class defines an instruction, represented in both
-// 	undecoded binary form
+// undecoded binary form and decoded form
 //      decoded to identify
 //	    operation to do
 //	    registers to act on
 //	    any immediate operand value
+//
+// A RISC instruction(32 bits) has three formats J-format, I-format, R-format
+//  J-format: op(6 bits), address(26 bits)
+//  I-format: op(6 bits), rs(5 bits), rt(5 bits), address(16 bits)
+//  R-format: op(6 bits), rs(5 bits), rt(5 bits), rd(5 bits), shamt(5 bits), func(6 bits)
+//
+//    op - operation code
+//    rs - 1st source register
+//    rt - 2nd source register or destination register (for some instructions)
+//    rd - destination register
+//    shamt - shift amount (useful only in shift instructions)
+//    func - used along with op to select an arithmetic instruction
+//    address - word address or offset
+
 
 class Instruction {
   public:
@@ -85,8 +99,9 @@ class Instruction {
     unsigned int value; // binary representation of the instruction
 
     unsigned int opCode;     // Type of instruction.  This is NOT the same as the
-    		     // opcode field from the instruction: see defs in mips.h
+    		     // opcode field from the instruction: see defs in mipssim.h
     unsigned int rs, rt, rd; // Three registers from instruction.
+														 
     unsigned int extra;       // Immediate or target or shamt field or offset.
                      // Immediates are sign-extended.
 };

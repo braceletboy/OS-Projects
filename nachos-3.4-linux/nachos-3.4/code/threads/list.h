@@ -48,6 +48,8 @@ class List {
     void Prepend(void *item); 	// Put item at the beginning of the list
     void Append(void *item); 	// Put item at the end of the list
     void *Remove(); 	 	// Take item off the front of the list
+    int RemoveItem(void* item); 	 	// Delete specific item
+
 
     void Mapcar(VoidFunctionPtr func);	// Apply "func" to every element 
 					// on the list
