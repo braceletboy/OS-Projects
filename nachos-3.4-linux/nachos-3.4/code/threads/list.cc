@@ -9,7 +9,7 @@
 // 
 //     	NOTE: Mutual exclusion must be provided by the caller.
 //  	If you want a synchronized list, you must use the routines 
-//	in synchlist.cc.
+//	    in synchlist.cc.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
@@ -126,6 +126,64 @@ List::Remove()
 {
     return SortedRemove(NULL);  // Same as SortedRemove, but ignore the key
 }
+
+
+//----------------------------------------------------------------------
+// List::RemoveItem
+//      Remove matching item if it exists
+//
+// Returns:
+//	0 if successful; -1 if not
+//----------------------------------------------------------------------
+
+
+int
+List::RemoveItem(void* item) {
+    ListElement *element = first;
+    ListElement *prev = NULL;
+
+    if(IsEmpty()) return -1;
+
+    // Handle single item list
+    if (first == last) {
+        // single item in list
+        if (first->item == item) {
+            // item found -- list is now empty
+            first = last = NULL;
+            delete element;
+            return 0;
+        } else {
+        // Element not found
+        return -1;
+        }
+    }
+
+    // Item has more than one item
+    element = first;
+    prev = NULL;
+
+    do {
+        if (element->item == item) {
+            // Found item
+            if (element == last) {
+                // Deleting last item
+                prev->next = NULL;
+                last = prev;
+            } else {
+                // Intermediate item
+                prev->next = element->next;
+            }
+            delete element;
+            return 0;
+        }
+        element = element->next;
+    } while (element != NULL);
+
+    // Element not found
+    return -1;
+}
+
+
 
 //----------------------------------------------------------------------
 // List::Mapcar
