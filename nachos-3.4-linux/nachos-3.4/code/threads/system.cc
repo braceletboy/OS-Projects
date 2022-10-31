@@ -31,6 +31,7 @@ SynchDisk   *synchDisk;
 Machine *machine;	// user program memory and registers
 MemoryManager *mm;
 Lock *mmLock;
+PCBManager *pcbManager;
 #endif
 
 #ifdef NETWORK
@@ -153,6 +154,7 @@ Initialize(int argc, char **argv)
     machine = new Machine(debugUserProg);	// this must come first
     mm = new MemoryManager();
     mmLock = new Lock("memory manager lock");
+    pcbManager = new PCBManager(MAX_PROCESSES);
 #endif
 
 #ifdef FILESYS
