@@ -34,3 +34,8 @@
 # VSCode
 .vscode/
 *.code-workspace
+
+nachos
+coff2noff
+*.coff
+swtch.s
