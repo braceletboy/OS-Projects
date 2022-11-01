@@ -1,5 +1,3 @@
-
-
 #include "memorymanager.h"
 #include "machine.h"
 
@@ -8,10 +6,14 @@
 // MemoryManager::MemoryManager
 //  Create a memory manager for the Operating system to use. The job of
 //  the memory manager is to manage, allocate and deallocate the
-//  physical memory in the system.
+//  physical memory in the system. It does this in a synchronized
+//  fashion.
 //
 //  The memory manager uses a bitmap internally to keep track of the
-//  pages in the physical memory.
+//  pages in the physical memory. Also, it does the synchronization
+//  using a lock and the memory manager is implemented like a monitor
+//  (synchronization primitive) whose methods different processes can
+//  use.
 //----------------------------------------------------------------------
 
 MemoryManager::MemoryManager() {
@@ -42,7 +44,13 @@ MemoryManager::~MemoryManager() {
 
 int MemoryManager::AllocatePage() {
 
-    return bitmap->Find();
+    // allocate page in a synchronized fashion
+    mmLock->Acquire();
+    int page_number = bitmap->Find();
+    ASSERT(page_number != -1);  // TODO - don't use assert
+    mmLock->Release();
+
+    return page_number;
 
 }
 
@@ -57,9 +65,13 @@ int MemoryManager::AllocatePage() {
 
 int MemoryManager::DeallocatePage(int which) {
 
+    // trying to deallocate a page that was not allocated
     if(bitmap->Test(which) == false) return -1;
     else {
+        // deallocate the page in a synchronized way
+        mmLock->Acquire();
         bitmap->Clear(which);
+        mmLock->Release();
         return 0;
     }
 

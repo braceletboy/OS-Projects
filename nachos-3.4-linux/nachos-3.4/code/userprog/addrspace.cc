@@ -165,15 +165,11 @@ AddrSpace::AddrSpace(AddrSpace *space)
     // 1. Find how big the source address space is
     unsigned int n = space->GetNumPages();
 
-    // Acquire mmLock
-    mmLock->Acquire();
-
     // 2. Check if there is enough free memory to make the copy. If not, then
     //    invalidate the address space.
     if(n <= mm->GetFreePageCount())
     {
         valid = false;
-        mmLock->Release();
         return;
     }
 
@@ -199,9 +195,6 @@ AddrSpace::AddrSpace(AddrSpace *space)
               &(machine->mainMemory[pageTable[i].physicalPage * PageSize]),
               PageSize);
     }
-
-    // Release mmLock
-    mmLock->Release();
 }
 
 //----------------------------------------------------------------------

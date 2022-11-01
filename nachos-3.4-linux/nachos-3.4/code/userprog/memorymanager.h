@@ -2,6 +2,7 @@
 #define MEMORY_H
 
 #include "bitmap.h"
+#include "synch.h"
 
 class MemoryManager {
 
@@ -15,7 +16,7 @@ class MemoryManager {
 
     private:
         BitMap *bitmap;
-
+        Lock *mmLock;
 };
 
 
