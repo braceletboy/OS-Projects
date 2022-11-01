@@ -118,6 +118,18 @@ BitMap::NumClear()
     return count;
 }
 
+//---------------------------------------------------------------------
+// BitMap::NumSet
+//  Return the number of set bits in the bitmap.
+//  (In other words, how many bits are allocated?)
+//---------------------------------------------------------------------
+
+int
+BitMap::NumSet()
+{
+    return numBits - NumClear();
+}
+
 //----------------------------------------------------------------------
 // BitMap::Print
 // 	Print the contents of the bitmap, for debugging.

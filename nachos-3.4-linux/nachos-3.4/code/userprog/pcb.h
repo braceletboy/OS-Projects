@@ -14,9 +14,9 @@ public:
     bool HasExited();
     void DeleteExitedChildrenSetParentNull();
 
-    int getPID();
-    PCB* getParent();
-    void setParentNull();
+    int GetPID();
+    PCB* GetParent();
+    void SetParentNull();
 
 private:
     int pid;
