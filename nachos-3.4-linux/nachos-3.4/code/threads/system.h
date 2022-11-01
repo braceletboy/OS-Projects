@@ -33,6 +33,7 @@ extern Timer *timer;				// the hardware alarm clock
 #include "machine.h"
 #include "memorymanager.h"
 #include "synch.h"
+#include "pcbmanager.h"
 
 #define MAX_PROCESSES 5
 
