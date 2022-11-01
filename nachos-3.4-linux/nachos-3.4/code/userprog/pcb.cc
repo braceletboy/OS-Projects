@@ -63,10 +63,10 @@ bool PCB::HasExited()
 }
 
 //--------------------------------------------------------------------
-// PCB::getPID
+// PCB::GetPID
 //  Return the pid of the process corresponding to this pcb
 //--------------------------------------------------------------------
-int PCB::getPID()
+int PCB::GetPID()
 {
     return pid;
 }
@@ -76,7 +76,7 @@ int PCB::getPID()
 //  Return the pointer to the parent of the process corresponding to
 //  this pcb
 //--------------------------------------------------------------------
-PCB* PCB::getParent()
+PCB* PCB::GetParent()
 {
     return parent;
 }
@@ -85,7 +85,7 @@ PCB* PCB::getParent()
 // PCB::setParentNull
 //  Set the pointer of the parent to NULL 
 //--------------------------------------------------------------------
-void PCB::setParentNull()
+void PCB::SetParentNull()
 {
     parent = NULL;
 }
