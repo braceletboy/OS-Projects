@@ -2,30 +2,27 @@
 #define PCB_H
 
 #include "list.h"
-#include "pcbmanager.h"
 
-class Thread;
-class PCBManager;
-extern PCBManager* pcbManager;
+class PCB
+{
+public:
+    PCB(int id);
+    ~PCB();
 
-class PCB {
+    void AddChild(PCB *pcb);
+    int RemoveChild(PCB *pcb);
+    bool HasExited();
+    void DeleteExitedChildrenSetParentNull();
 
-    public:
-        PCB(int id);
-        ~PCB();
-        int pid;
-        PCB* parent;
-        List* children;
-        Thread* thread;
-        int exitStatus;
+    int getPID();
+    PCB* getParent();
+    void setParentNull();
 
-        void AddChild(PCB* pcb);
-        int RemoveChild(PCB* pcb);
-        bool HasExited();
-        void DeleteExitedChildrenSetParentNull();
-
-    private:
-
+private:
+    int pid;
+    PCB *parent;
+    List *children;
+    int exitStatus;
 };
 
 #endif // PCB_H
