@@ -4,13 +4,17 @@
 // PCBManager::PCBManager
 //  Create a pcb manager that can manage the given number of processes
 //
+//  The pcb manager is synchronized - it's implemented like a monitor.
+//  Different processes can access the pcb manager and the various
+//  resources it holds in a synchronized fashion.
+//
 //  "maxProcesses" is the number of processes that it can manage
 //---------------------------------------------------------------------
 
 PCBManager::PCBManager(int maxProcesses)
 {
     bitmap = new BitMap(maxProcesses);
-    pcbs = new PCB *[maxProcesses];
+    pcbs = new PCB*[maxProcesses];
     printf("pcbs.size() = %d\n", sizeof(pcbs));
 
     for (int i = 0; i < maxProcesses; i++)
@@ -27,7 +31,6 @@ PCBManager::PCBManager(int maxProcesses)
 PCBManager::~PCBManager()
 {
     delete bitmap;
-
     delete pcbs;
 }
 
@@ -40,15 +43,14 @@ PCBManager::~PCBManager()
 
 PCB *PCBManager::AllocatePCB()
 {
-    // Aquire pcbManagerLock
+    // assign a pcb to the process in a synchronized manner
+    pcbManagerLock->Acquire();
 
     int pid = bitmap->Find();
-
-    // Release pcbManagerLock
-
-    ASSERT(pid != -1);
-
+    ASSERT(pid != -1);  // TODO - don't use assert
     pcbs[pid] = new PCB(pid);
+
+    pcbManagerLock->Release();
 
     return pcbs[pid];
 }
@@ -64,18 +66,15 @@ PCB *PCBManager::AllocatePCB()
 
 int PCBManager::DeallocatePCB(PCB *pcb)
 {
-    // Check is pcb is valid -- check pcbs for pcb->pid
+    // remove the pcb in a synchronized manner
+    pcbManagerLock->Acquire();
 
-    // Aquire pcbManagerLock
-
-    int process_id = pcb->getPID();
+    int process_id = pcb->GetPID();
     bitmap->Clear(process_id);
-
-    // Release pcbManagerLock
-
     delete pcbs[process_id];
-
     pcbs[process_id] = NULL;
+
+    pcbManagerLock->Release();
 }
 
 //--------------------------------------------------------------------
@@ -88,4 +87,15 @@ int PCBManager::DeallocatePCB(PCB *pcb)
 PCB *PCBManager::GetPCB(int pid)
 {
     return pcbs[pid];
+}
+
+//--------------------------------------------------------------------
+// PCBManager::NumProc
+//  Return the number of processes in the system currently
+//--------------------------------------------------------------------
+
+int PCBManager::NumProc()
+{
+    // TODO
+    ;
 }
