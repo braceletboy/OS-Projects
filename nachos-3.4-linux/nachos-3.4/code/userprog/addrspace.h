@@ -24,7 +24,7 @@ class AddrSpace {
     AddrSpace(OpenFile *executable);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
-    AddrSpace(AddrSpace* space); // Create an address space,
+    AddrSpace(AddrSpace& space); // Create an address space,
           // which is a copy of an existing one
     ~AddrSpace();			// De-allocate an address space
 
@@ -33,14 +33,13 @@ class AddrSpace {
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
+    bool IsValid();
     unsigned int GetNumPages(); // get size of addr space
-    TranslationEntry* GetPageTable(); // return pageTable
     unsigned int Translate(unsigned int virtualAddr);
     PCB* pcb; // the process that owns this addresspace
-    bool valid; // is AddrSpace valid
-
 
   private:
+    bool valid; // is AddrSpace valid
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual
