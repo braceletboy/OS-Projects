@@ -142,9 +142,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
     valid = true;
 }
 
-TranslationEntry *AddrSpace::GetPageTable()
+bool AddrSpace::IsValid()
 {
-    return pageTable;
+    return valid;
 }
 
 unsigned int AddrSpace::GetNumPages()
@@ -157,17 +157,17 @@ unsigned int AddrSpace::GetNumPages()
 // 	Create an address space as a copy of an existing one
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(AddrSpace *space)
+AddrSpace::AddrSpace(AddrSpace& space)
 {
 
     valid = true;
 
     // 1. Find how big the source address space is
-    unsigned int n = space->GetNumPages();
+    unsigned int n = space.GetNumPages();
 
     // 2. Check if there is enough free memory to make the copy. If not, then
     //    invalidate the address space.
-    if(n <= mm->GetFreePageCount())
+    if(n > mm->GetFreePageCount())
     {
         valid = false;
         return;
@@ -178,7 +178,7 @@ AddrSpace::AddrSpace(AddrSpace *space)
     numPages = n;
 
     // 4. Make a copy of the PTEs but allocate new physical pages
-    TranslationEntry *ppt = space->GetPageTable();
+    TranslationEntry *ppt = space.pageTable;
     for (unsigned int i = 0; i < numPages; i++)
     {
         pageTable[i].virtualPage = ppt[i].virtualPage;
