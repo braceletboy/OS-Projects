@@ -1,4 +1,5 @@
 #include "pcb.h"
+#include "system.h"
 
 //--------------------------------------------------------------------
 // PCB::PCB
@@ -10,7 +11,10 @@
 PCB::PCB(int id)
 {
     pid = id;
-    parent = NULL;
+    if (currentThread->space == NULL)
+        parent = NULL;
+    else
+        parent = currentThread->space->pcb;
     children = new List();
     exitStatus = -9999;
 }
