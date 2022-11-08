@@ -18,6 +18,7 @@
 
 MemoryManager::MemoryManager() {
 
+    mmLock = new Lock("memory manager lock");
     bitmap = new BitMap(NumPhysPages);
 
 }

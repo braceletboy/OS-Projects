@@ -21,6 +21,7 @@ PCBManager::PCBManager(int maxProcesses)
     {
         pcbs[i] = NULL;
     }
+    pcbManagerLock = new Lock("pcb manager lock");
 }
 
 //--------------------------------------------------------------------
