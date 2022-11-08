@@ -15,7 +15,6 @@ PCBManager::PCBManager(int maxProcesses)
 {
     bitmap = new BitMap(maxProcesses);
     pcbs = new PCB*[maxProcesses];
-    printf("pcbs.size() = %d\n", sizeof(pcbs));
 
     for (int i = 0; i < maxProcesses; i++)
     {

@@ -24,19 +24,53 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "addrspace.h"
+#include "thread.h"
 
 void doExit(int status) {
-
+    printf("Process %d exit with status %d\n", currentThread->space->pcb->GetPID(), status);
+    currentThread->Finish();
 }
 
 
-void childFunction(int pid) {
-
+void startChildProcess(int dummy) {
+    currentThread->RestoreUserState();
+    currentThread->space->RestoreState();
+    machine->Run();
 }
 
 int doFork(int functionAddr) {
+    printf("System Call: %d invoked Fork\n", currentThread->space->pcb->GetPID());
+    AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
+    if (!childAddrSpace->IsValid())
+    {
+        return -1;
+    }
 
+    Thread* childThread = new Thread("childThread");
+    childThread->space = childAddrSpace;
 
+    PCB* pcb = pcbManager->AllocatePCB();
+    childAddrSpace->pcb = pcb;
+    currentThread->space->pcb->AddChild(pcb);
+
+    currentThread->SaveUserState();
+
+    machine->WriteRegister(PCReg, functionAddr);
+    machine->WriteRegister(PrevPCReg, functionAddr - 4);
+    machine->WriteRegister(NextPCReg, functionAddr + 4);
+    childThread->SaveUserState();
+
+    currentThread->RestoreUserState();
+
+    childThread->Fork(startChildProcess, 0);
+    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
+            currentThread->space->pcb->GetPID(),
+            functionAddr,
+            childAddrSpace->GetNumPages()
+    );
+
+    return pcb->GetPID();
 }
 
 int doExec(char* filename) {
@@ -56,7 +90,7 @@ int doKill (int pid) {
 
 
 void doYield() {
-
+    currentThread->Yield();
 }
 
 void incrementPC() {
