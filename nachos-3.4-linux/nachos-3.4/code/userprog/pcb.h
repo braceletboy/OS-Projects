@@ -17,12 +17,12 @@ public:
     int GetPID();
     PCB* GetParent();
     void SetParentNull();
+    int exitStatus;
 
 private:
     int pid;
     PCB *parent;
     List *children;
-    int exitStatus;
 };
 
 #endif // PCB_H

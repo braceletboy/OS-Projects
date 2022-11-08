@@ -28,7 +28,21 @@
 #include "thread.h"
 
 void doExit(int status) {
-    printf("Process %d exit with status %d\n", currentThread->space->pcb->GetPID(), status);
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Exit\n", pid);
+    printf("Process %d exits with status %d\n", pid, status);
+
+    currentThread->space->pcb->exitStatus = status;
+
+    // Manage PCB memory As a parent process
+    PCB* pcb = currentThread->space->pcb;
+    pcb->DeleteExitedChildrenSetParentNull();
+
+    // Manage PCB memory As a child process
+    if(pcb->GetParent() == NULL)
+        pcbManager->DeallocatePCB(pcb);
+    delete currentThread->space;
+
     currentThread->Finish();
 }
 
