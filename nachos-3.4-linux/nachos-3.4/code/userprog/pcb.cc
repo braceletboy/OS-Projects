@@ -38,7 +38,7 @@ PCB::~PCB()
 
 void PCB::AddChild(PCB *pcb)
 {
-    children->Append(pcb);
+    children->Append((void*)pcb);
 }
 
 //--------------------------------------------------------------------
@@ -92,4 +92,17 @@ PCB* PCB::GetParent()
 void PCB::SetParentNull()
 {
     parent = NULL;
+}
+
+void PCB::DeleteExitedChildrenSetParentNull()
+{
+    PCB* child = (PCB*)children->Remove();
+    while (child != NULL)
+    {
+        if (child->HasExited())
+            delete child;
+        else
+            child->SetParentNull();
+        child = (PCB*)children->Remove();
+    }
 }
