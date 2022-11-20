@@ -30,8 +30,7 @@
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
 
-void
-SwapHeader(NoffHeader *noffH)
+void SwapHeader(NoffHeader *noffH)
 {
     noffH->noffMagic = WordToHost(noffH->noffMagic);
     noffH->code.size = WordToHost(noffH->code.size);
@@ -159,7 +158,7 @@ unsigned int AddrSpace::GetNumPages()
 //  "space" is the address space we are copying
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(AddrSpace& space)
+AddrSpace::AddrSpace(AddrSpace &space)
 {
 
     valid = true;
@@ -169,7 +168,7 @@ AddrSpace::AddrSpace(AddrSpace& space)
 
     // 2. Check if there is enough free memory to make the copy. If not, then
     //    invalidate the address space.
-    if(n > mm->GetFreePageCount())
+    if (n > mm->GetFreePageCount())
     {
         valid = false;
         return;
@@ -212,7 +211,7 @@ AddrSpace::~AddrSpace()
 {
     if (!valid)
         return;
-    for (int i = 0; i < numPages; i++)
+    for (unsigned int i = 0; i < numPages; i++)
         mm->DeallocatePage(pageTable[i].physicalPage);
     pcbManager->DeallocatePCB(pcb);
     delete pageTable;

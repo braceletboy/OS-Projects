@@ -92,14 +92,3 @@ PCB *PCBManager::GetPCB(int pid)
 {
     return pcbs[pid];
 }
-
-//--------------------------------------------------------------------
-// PCBManager::NumProc
-//  Return the number of processes in the system currently
-//--------------------------------------------------------------------
-
-int PCBManager::NumProc()
-{
-    // TODO
-    ;
-}
