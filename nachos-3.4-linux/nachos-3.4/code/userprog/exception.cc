@@ -33,7 +33,6 @@ extern void SwapHeader(NoffHeader *noffH);
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Exit\n", pid);
-    printf("Process %d exits with status %d\n", pid, status);
 
     currentThread->space->pcb->exitStatus = status;
 
@@ -47,6 +46,7 @@ void doExit(int status) {
     delete currentThread->space;
 
     currentThread->Finish();
+    printf("Process %d exits with status %d\n", pid, status);
 }
 
 
@@ -57,7 +57,8 @@ void startChildProcess(int dummy) {
 }
 
 int doFork(int functionAddr) {
-    printf("System Call: %d invoked Fork\n", currentThread->space->pcb->GetPID());
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Fork\n", pid);
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
     if (!childAddrSpace->IsValid())
     {
@@ -82,9 +83,7 @@ int doFork(int functionAddr) {
 
     childThread->Fork(startChildProcess, 0);
     printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
-            currentThread->space->pcb->GetPID(),
-            functionAddr,
-            childAddrSpace->GetNumPages()
+            pid, functionAddr, childAddrSpace->GetNumPages()
     );
 
     return pcb->GetPID();
@@ -106,6 +105,8 @@ int doFork(int functionAddr) {
 //---------------------------------------------------------------------
 
 int doExec(char* filename) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Exec\n", pid);
     AddrSpace *current_addrspace = currentThread->space;
 
     // 1. Read the executable
@@ -115,6 +116,8 @@ int doExec(char* filename) {
         printf("Unable to open file %s\n", filename);
         return -1;
     }
+
+    printf("Exec Program: %d loading %s\n", pid, filename);
 
     // 2. Replace the process memory with the content of the executable
     delete current_addrspace;
@@ -132,18 +135,22 @@ int doExec(char* filename) {
 }
 
 
-int doJoin(int pid) {
-
+int doJoin(int join_pid) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Join\n", pid);
 }
 
 
-int doKill (int pid) {
-
+int doKill (int kill_pid) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Kill\n", pid);
 }
 
 
 
 void doYield() {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Yield\n", pid);
     currentThread->Yield();
 }
 
