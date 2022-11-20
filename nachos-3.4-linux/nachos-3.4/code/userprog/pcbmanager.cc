@@ -59,20 +59,24 @@ PCB *PCBManager::AllocatePCB()
 // PCBManager::DeallocatePCB
 //  Deallocate (delete) the pcb instance and clean up after it
 //
-//  "pcb" is the pcb you want to deallocate
+//  If the pcb pointer is given as NULL, does nothing
 //
-//  Returns 0 if successful otherwise -1
+//  "pcb" is the pcb you want to deallocate
 //--------------------------------------------------------------------
 
-int PCBManager::DeallocatePCB(PCB *pcb)
+void PCBManager::DeallocatePCB(PCB *pcb)
 {
+    // TODO: Let the pcb manager also take care of modifying
+    // the pcb tree when a pcb is deleted.
+    if (pcb == NULL) return;
+
     // remove the pcb in a synchronized manner
     pcbManagerLock->Acquire();
 
     int process_id = pcb->GetPID();
     bitmap->Clear(process_id);
-    delete pcbs[process_id];
     pcbs[process_id] = NULL;
+    delete pcb;
 
     pcbManagerLock->Release();
 }

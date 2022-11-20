@@ -201,7 +201,11 @@ AddrSpace::AddrSpace(AddrSpace& space)
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
-// 	Deallocate an address space.  Nothing for now!
+// 	Deallocate an address space.
+//
+//  Deallocating the address space involves remove the physical frames
+//  using the MemoryManager, deleting the process control block using
+//  the PCBManager.
 //----------------------------------------------------------------------
 
 AddrSpace::~AddrSpace()
@@ -210,6 +214,7 @@ AddrSpace::~AddrSpace()
         return;
     for (int i = 0; i < numPages; i++)
         mm->DeallocatePage(pageTable[i].physicalPage);
+    pcbManager->DeallocatePCB(pcb);
     delete pageTable;
 }
 
