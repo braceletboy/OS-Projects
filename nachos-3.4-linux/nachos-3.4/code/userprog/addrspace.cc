@@ -30,7 +30,7 @@
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
 
-static void
+void
 SwapHeader(NoffHeader *noffH)
 {
     noffH->noffMagic = WordToHost(noffH->noffMagic);
@@ -155,6 +155,8 @@ unsigned int AddrSpace::GetNumPages()
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 // 	Create an address space as a copy of an existing one
+//
+//  "space" is the address space we are copying
 //----------------------------------------------------------------------
 
 AddrSpace::AddrSpace(AddrSpace& space)

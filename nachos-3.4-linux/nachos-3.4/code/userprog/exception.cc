@@ -26,6 +26,9 @@
 #include "syscall.h"
 #include "addrspace.h"
 #include "thread.h"
+#include "noff.h"
+
+extern void SwapHeader(NoffHeader *noffH);
 
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
@@ -87,8 +90,45 @@ int doFork(int functionAddr) {
     return pcb->GetPID();
 }
 
-int doExec(char* filename) {
+//---------------------------------------------------------------------
+// doExec
+//  Helper function for performing the exec system call
+//
+//  This function assumes that the current thread already has an address
+//  space. This is a reasonable assumption because new processes are
+//  created using fork and a fork always creates a new address space for
+//  the forked process.
+//
+//  "filename" is the name of the executable that needs to be loaded
+//  into the current address space.
+//
+//  Returns 0 if successful else -1
+//---------------------------------------------------------------------
 
+int doExec(char* filename) {
+    AddrSpace *current_addrspace = currentThread->space;
+
+    // 1. Read the executable
+    OpenFile *executable = fileSystem->Open(filename);
+    if (executable == NULL)
+    {
+        printf("Unable to open file %s\n", filename);
+        return -1;
+    }
+
+    // 2. Replace the process memory with the content of the executable
+    delete current_addrspace;
+
+    AddrSpace *executable_addrspace = new AddrSpace(executable);
+    if(!executable_addrspace->IsValid()) return -1;
+    currentThread->space = executable_addrspace;
+
+    delete executable;
+
+    // 3. Set the registers, pageTable & pageTableSize for the machine
+    executable_addrspace->InitRegisters();
+    executable_addrspace->RestoreState();
+    return 0;
 }
 
 
