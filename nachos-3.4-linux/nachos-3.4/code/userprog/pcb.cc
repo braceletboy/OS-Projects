@@ -16,7 +16,7 @@ PCB::PCB(int id)
     else
         parent = currentThread->space->pcb;
     children = new List();
-    exitStatus = -9999;
+    exitStatus = -9999; // hasn't exited
 }
 
 //--------------------------------------------------------------------
@@ -38,7 +38,7 @@ PCB::~PCB()
 
 void PCB::AddChild(PCB *pcb)
 {
-    children->Append((void*)pcb);
+    children->Append((void *)pcb);
 }
 
 //--------------------------------------------------------------------
@@ -76,7 +76,7 @@ int PCB::GetPID()
 }
 
 //--------------------------------------------------------------------
-// PCB::getParent
+// PCB::GetParent
 //  Return the pointer to the parent of the process corresponding to
 //  this pcb
 //--------------------------------------------------------------------
@@ -85,24 +85,35 @@ PCB* PCB::GetParent()
     return parent;
 }
 
-//--------------------------------------------------------------------
-// PCB::setParentNull
-//  Set the pointer of the parent to NULL 
-//--------------------------------------------------------------------
-void PCB::SetParentNull()
+//---------------------------------------------------------------------
+// PCB::GetChildren
+//  Return a pointer to the list of children PCB pointers
+//----------------------------------------------------------------------
+List* PCB::GetChildren()
 {
-    parent = NULL;
+    return children;
+}
+
+//----------------------------------------------------------------------
+// PCB::SetParent
+//  Set the pointer of the parent to the given pointer
+//
+//  "new_parent" is the new parent pointer
+//----------------------------------------------------------------------
+void PCB::SetParent(PCB *new_parent)
+{
+    parent = new_parent;
 }
 
 void PCB::DeleteExitedChildrenSetParentNull()
 {
-    PCB* child = (PCB*)children->Remove();
+    PCB *child = (PCB *)children->Remove();
     while (child != NULL)
     {
         if (child->HasExited())
             delete child;
         else
-            child->SetParentNull();
-        child = (PCB*)children->Remove();
+            child->SetParent(NULL);
+        child = (PCB *)children->Remove();
     }
 }

@@ -16,7 +16,8 @@ public:
 
     int GetPID();
     PCB* GetParent();
-    void SetParentNull();
+    List* GetChildren();
+    void SetParent(PCB *new_parent);
     int exitStatus;
 
 private:
