@@ -136,6 +136,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
     }
 
     valid = true;
+    printf(
+        "Loaded Program: %d code | %d data | %d bss\n",
+        noffH.code.size, noffH.initData.size, noffH.uninitData.size
+    );
 }
 
 bool AddrSpace::IsValid()

@@ -48,8 +48,9 @@ void doExit(int status) {
     delete currentThread->space;
 
     // 5. Delete thread of execution
-    currentThread->Finish();
     printf("Process %d exits with status %d\n", pid, status);
+    currentThread->Finish();
+
 }
 
 
@@ -147,10 +148,41 @@ int doExec(char* filename) {
     return 0;
 }
 
+//---------------------------------------------------------------------
+// doJoin
+//  Helper function for making current process join on another process
+//
+//  "join_pid" is the process we want to join on
+//
+//  Returns -9999 if the join was unsuccessful else the exit status of
+//  of the joined process
+//---------------------------------------------------------------------
 
 int doJoin(int join_pid) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Join\n", pid);
+
+    // 1. Check if process joining on itself
+    if(join_pid == pid)
+    {
+        printf("Process %d trying to join on itself: note allowed\n",
+               join_pid);
+        return -9999;
+    }
+
+    // 2. Check if parent is calling join on child
+    PCB *join_pcb = pcbManager->GetPCB(join_pid);
+    PCB *jp_parent_pcb = join_pcb->GetParent();
+
+    if(jp_parent_pcb->GetPID() != pid)
+    {
+        printf("Non parent process %d trying to join on %d: not allowed\n",
+              pid, join_pid);
+        return -9999;
+    }
+    while(!join_pcb->HasExited()) currentThread->Yield();
+    printf("Process %d joined on %d\n", pid, join_pid);
+    return join_pcb->exitStatus;
 }
 
 //--------------------------------------------------------------------
@@ -177,7 +209,7 @@ int doKill (int kill_pid) {
         // 2. Check if the process to be killed exists
         if(killed_pcb == NULL)
         {
-            printf("Process %d cannot be kill process %d: doesn't exist",
+            printf("Process %d cannot be kill process %d: doesn't exist\n",
                    pid, kill_pid);
             return -1;
         }
@@ -199,7 +231,7 @@ int doKill (int kill_pid) {
         // 6. Delete thread of execution
         delete kp_thread;
 
-        printf("Process %d killed process %d", pid, kill_pid);
+        printf("Process %d killed process %d\n", pid, kill_pid);
         return 0;
     }
 }
