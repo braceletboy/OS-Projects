@@ -153,10 +153,49 @@ int doJoin(int join_pid) {
     printf("System Call: %d invoked Join\n", pid);
 }
 
+//--------------------------------------------------------------------
+// doKill
+//  Helper function for performing the Kill system call
+//
+//  Returns 0 if successful else -1
+//--------------------------------------------------------------------
 
 int doKill (int kill_pid) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Kill\n", pid);
+
+    // 1. Call Exit if the to be killed process is same as current process
+    if(kill_pid == currentThread->space->pcb->GetPID())
+    {
+        doExit(9999);
+        return 0;
+    }
+    else
+    {
+        PCB *killed_pcb = pcbManager->GetPCB(kill_pid);
+
+        // 2. Check if the process to be killed exists
+        if(killed_pcb == NULL) return -1;
+
+        // 3. Set the exit status
+        killed_pcb->exitStatus = 9999;
+
+        // 3. Make changes to the PCB tree
+        killed_pcb->DeleteExitedChildrenSetParentNull();
+        PCB *kp_parent_pcb = killed_pcb->GetParent();
+
+        // 4. Delete PCB if necessary
+        if(kp_parent_pcb == NULL) pcbManager->DeallocatePCB(killed_pcb);
+
+        // 5. Delete address space
+        Thread *kp_thread = scheduler->UnSchedule(kill_pid);
+        delete kp_thread->space;
+
+        // 6. Delete thread of execution
+        delete kp_thread;
+
+        return 0;
+    }
 }
 
 
