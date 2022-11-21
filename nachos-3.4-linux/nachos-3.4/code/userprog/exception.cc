@@ -165,7 +165,7 @@ int doKill (int kill_pid) {
     printf("System Call: %d invoked Kill\n", pid);
 
     // 1. Call Exit if the to be killed process is same as current process
-    if(kill_pid == currentThread->space->pcb->GetPID())
+    if(kill_pid == pid)
     {
         doExit(9999);
         return 0;
