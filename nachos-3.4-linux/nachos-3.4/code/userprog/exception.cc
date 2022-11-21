@@ -175,7 +175,12 @@ int doKill (int kill_pid) {
         PCB *killed_pcb = pcbManager->GetPCB(kill_pid);
 
         // 2. Check if the process to be killed exists
-        if(killed_pcb == NULL) return -1;
+        if(killed_pcb == NULL)
+        {
+            printf("Process %d cannot be kill process %d: doesn't exist",
+                   pid, kill_pid);
+            return -1;
+        }
 
         // 3. Set the exit status
         killed_pcb->exitStatus = 9999;
@@ -194,6 +199,7 @@ int doKill (int kill_pid) {
         // 6. Delete thread of execution
         delete kp_thread;
 
+        printf("Process %d killed process %d", pid, kill_pid);
         return 0;
     }
 }
