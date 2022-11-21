@@ -59,19 +59,23 @@ void startChildProcess(int dummy) {
 int doFork(int functionAddr) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Fork\n", pid);
+
+    // 1. Allocate an address space for the forked process
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
     if (!childAddrSpace->IsValid())
     {
         return -1;
     }
 
+    // 2. Allocate a pcb for the forked process
+    PCB* pcb = pcbManager->AllocatePCB();
+    childAddrSpace->pcb = pcb;
+
+    // 3. Allocate a thread for the forked process
     Thread* childThread = new Thread("childThread");
     childThread->space = childAddrSpace;
 
-    PCB* pcb = pcbManager->AllocatePCB();
-    childAddrSpace->pcb = pcb;
-    currentThread->space->pcb->AddChild(pcb);
-
+    // 4. Setup the machine state for forked process
     currentThread->SaveUserState();
 
     machine->WriteRegister(PCReg, functionAddr);
@@ -81,10 +85,14 @@ int doFork(int functionAddr) {
 
     currentThread->RestoreUserState();
 
+    // 5. Setup the execution switch stack for the forked process
     childThread->Fork(startChildProcess, 0);
     printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
             pid, functionAddr, childAddrSpace->GetNumPages()
     );
+
+    // 6. Add the forked pcb to the current pcb as child
+    currentThread->space->pcb->AddChild(pcb);
 
     return pcb->GetPID();
 }
@@ -120,10 +128,12 @@ int doExec(char* filename) {
     printf("Exec Program: %d loading %s\n", pid, filename);
 
     // 2. Replace the process memory with the content of the executable
+    PCB *current_pcb = current_addrspace->pcb;
     delete current_addrspace;
 
     AddrSpace *executable_addrspace = new AddrSpace(executable);
     if(!executable_addrspace->IsValid()) return -1;
+    executable_addrspace->pcb = current_pcb;
     currentThread->space = executable_addrspace;
 
     delete executable;

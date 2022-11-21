@@ -87,9 +87,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
         return;
     }
 
-    // Allocate a new PCB for the address space
-    pcb = pcbManager->AllocatePCB();
-
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
           numPages, size);
     // first, set up the translation
@@ -213,7 +210,6 @@ AddrSpace::~AddrSpace()
         return;
     for (unsigned int i = 0; i < numPages; i++)
         mm->DeallocatePage(pageTable[i].physicalPage);
-    pcbManager->DeallocatePCB(pcb);
     delete pageTable;
 }
 
