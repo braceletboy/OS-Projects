@@ -34,17 +34,20 @@ void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Exit\n", pid);
 
+    // 1. Set the exit status
     currentThread->space->pcb->exitStatus = status;
 
-    // Manage PCB memory As a parent process
+    // 2. Make changes to the PCB tree
     PCB* pcb = currentThread->space->pcb;
     pcb->DeleteExitedChildrenSetParentNull();
 
-    // Manage PCB memory As a child process
-    if(pcb->GetParent() == NULL)
-        pcbManager->DeallocatePCB(pcb);
+    // 3. Delete PCB if necessary
+    if(pcb->GetParent() == NULL) pcbManager->DeallocatePCB(pcb);
+
+    // 4. Delete address space
     delete currentThread->space;
 
+    // 5. Delete thread of execution
     currentThread->Finish();
     printf("Process %d exits with status %d\n", pid, status);
 }
