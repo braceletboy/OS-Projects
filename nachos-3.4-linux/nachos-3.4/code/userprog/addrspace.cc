@@ -30,7 +30,7 @@
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
 
-void SwapHeader(NoffHeader *noffH)
+static void SwapHeader(NoffHeader *noffH)
 {
     noffH->noffMagic = WordToHost(noffH->noffMagic);
     noffH->code.size = WordToHost(noffH->code.size);

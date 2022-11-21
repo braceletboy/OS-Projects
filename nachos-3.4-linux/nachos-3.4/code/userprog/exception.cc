@@ -26,9 +26,6 @@
 #include "syscall.h"
 #include "addrspace.h"
 #include "thread.h"
-#include "noff.h"
-
-extern void SwapHeader(NoffHeader *noffH);
 
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
