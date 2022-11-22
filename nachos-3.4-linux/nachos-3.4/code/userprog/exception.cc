@@ -52,8 +52,8 @@ void doExit(int status) {
 
 
 void startChildProcess(int dummy) {
-    currentThread->RestoreUserState();
-    currentThread->space->RestoreState();
+    // currentThread->RestoreUserState();
+    // currentThread->space->RestoreState();
     machine->Run();
 }
 
@@ -67,13 +67,18 @@ int doFork(int functionAddr) {
     {
         return -1;
     }
+    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
+            pid, functionAddr, childAddrSpace->GetNumPages()
+    );
 
     // 2. Allocate a pcb for the forked process
     PCB* pcb = pcbManager->AllocatePCB();
     childAddrSpace->pcb = pcb;
 
     // 3. Allocate a thread for the forked process
-    Thread* childThread = new Thread("childThread");
+    char threadName[20];
+    sprintf(threadName, "childThread_%d", pcb->GetPID());
+    Thread* childThread = new Thread(threadName);
     childThread->space = childAddrSpace;
 
     // 4. Setup the machine state for forked process
@@ -88,9 +93,6 @@ int doFork(int functionAddr) {
 
     // 5. Setup the execution switch stack for the forked process
     childThread->Fork(startChildProcess, 0);
-    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
-            pid, functionAddr, childAddrSpace->GetNumPages()
-    );
 
     // 6. Add the forked pcb to the current pcb as child
     currentThread->space->pcb->AddChild(pcb);
@@ -178,7 +180,7 @@ int doJoin(int join_pid) {
         return -9999;
     }
     while(!join_pcb->HasExited()) currentThread->Yield();
-    printf("Process %d joined on %d\n", pid, join_pid);
+    DEBUG('a', "Process %d joined on %d\n", pid, join_pid);
     return join_pcb->exitStatus;
 }
 

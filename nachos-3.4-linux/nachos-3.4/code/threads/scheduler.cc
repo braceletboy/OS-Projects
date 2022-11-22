@@ -104,6 +104,12 @@ Scheduler::Run (Thread *nextThread)
 
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running
+#ifdef USER_PROGRAM
+    if (currentThread->space != NULL) {		// if there is an address space
+        currentThread->RestoreUserState();     // to restore, do it.
+	currentThread->space->RestoreState();
+    }
+#endif
     
     DEBUG('t', "Switching from thread \"%s\" to thread \"%s\"\n",
 	  oldThread->getName(), nextThread->getName());
@@ -126,12 +132,6 @@ Scheduler::Run (Thread *nextThread)
 	threadToBeDestroyed = NULL;
     }
     
-#ifdef USER_PROGRAM
-    if (currentThread->space != NULL) {		// if there is an address space
-        currentThread->RestoreUserState();     // to restore, do it.
-	currentThread->space->RestoreState();
-    }
-#endif
 }
 
 //----------------------------------------------------------------------
