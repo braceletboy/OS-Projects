@@ -30,8 +30,7 @@
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
 
-static void
-SwapHeader(NoffHeader *noffH)
+static void SwapHeader(NoffHeader *noffH)
 {
     noffH->noffMagic = WordToHost(noffH->noffMagic);
     noffH->code.size = WordToHost(noffH->code.size);
@@ -88,9 +87,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
         return;
     }
 
-    // Allocate a new PCB for the address space
-    pcb = pcbManager->AllocatePCB();
-
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
           numPages, size);
     // first, set up the translation
@@ -140,6 +136,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
     }
 
     valid = true;
+    printf(
+        "Loaded Program: %d code | %d data | %d bss\n",
+        noffH.code.size, noffH.initData.size, noffH.uninitData.size
+    );
 }
 
 bool AddrSpace::IsValid()
@@ -155,9 +155,11 @@ unsigned int AddrSpace::GetNumPages()
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 // 	Create an address space as a copy of an existing one
+//
+//  "space" is the address space we are copying
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(AddrSpace& space)
+AddrSpace::AddrSpace(AddrSpace &space)
 {
 
     valid = true;
@@ -167,7 +169,7 @@ AddrSpace::AddrSpace(AddrSpace& space)
 
     // 2. Check if there is enough free memory to make the copy. If not, then
     //    invalidate the address space.
-    if(n > mm->GetFreePageCount())
+    if (n > mm->GetFreePageCount())
     {
         valid = false;
         return;
@@ -199,14 +201,18 @@ AddrSpace::AddrSpace(AddrSpace& space)
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
-// 	Deallocate an address space.  Nothing for now!
+// 	Deallocate an address space.
+//
+//  Deallocating the address space involves remove the physical frames
+//  using the MemoryManager, deleting the process control block using
+//  the PCBManager.
 //----------------------------------------------------------------------
 
 AddrSpace::~AddrSpace()
 {
     if (!valid)
         return;
-    for (int i = 0; i < numPages; i++)
+    for (unsigned int i = 0; i < numPages; i++)
         mm->DeallocatePage(pageTable[i].physicalPage);
     delete pageTable;
 }

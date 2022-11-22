@@ -104,6 +104,12 @@ Scheduler::Run (Thread *nextThread)
 
     currentThread = nextThread;		    // switch to the next thread
     currentThread->setStatus(RUNNING);      // nextThread is now running
+#ifdef USER_PROGRAM
+    if (currentThread->space != NULL) {		// if there is an address space
+        currentThread->RestoreUserState();     // to restore, do it.
+	currentThread->space->RestoreState();
+    }
+#endif
     
     DEBUG('t', "Switching from thread \"%s\" to thread \"%s\"\n",
 	  oldThread->getName(), nextThread->getName());
@@ -126,12 +132,6 @@ Scheduler::Run (Thread *nextThread)
 	threadToBeDestroyed = NULL;
     }
     
-#ifdef USER_PROGRAM
-    if (currentThread->space != NULL) {		// if there is an address space
-        currentThread->RestoreUserState();     // to restore, do it.
-	currentThread->space->RestoreState();
-    }
-#endif
 }
 
 //----------------------------------------------------------------------
@@ -145,3 +145,43 @@ Scheduler::Print()
     printf("Ready list contents:\n");
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
+
+#ifdef USER_PROGRAM
+
+//----------------------------------------------------------------------
+// Scheduler::UnSchedule(int pid)
+//  Return the thread with given pid from the ready list by removing it
+//
+//  "pid" is the process id of the thread we want to unschedule
+//----------------------------------------------------------------------
+Thread *
+Scheduler::UnSchedule(int pid)
+{
+    ASSERT(!readyList->IsEmpty())
+
+    // iterate through the items in the ready list by calling remove
+    List *tempList = new List();
+    Thread *removed_thread = (Thread *) readyList->Remove();
+    while(removed_thread != NULL)
+    {
+        // removed thread is the unscheduler thread
+        if (removed_thread->space->pcb->GetPID() == pid)
+        {
+            // put back the removed ready threads in the correct order
+            while(!tempList->IsEmpty())
+            {
+                void *item = tempList->Remove();
+                readyList->Prepend(item);
+            }
+            return removed_thread;
+        }
+        // store removed item in the temp list
+        tempList->Prepend((void *) removed_thread);
+
+        removed_thread = (Thread *) readyList->Remove();
+    }
+    return NULL;
+    // TODO: Handle the cases where there can be random interrupts leading
+    // to the killed process not being in the ready list
+}
+#endif

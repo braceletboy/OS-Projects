@@ -133,7 +133,7 @@ Yield:
 	.globl Kill
 	.ent	Kill
 Kill:
-	addiu $2,$0,SC_Yield
+	addiu $2,$0,SC_Kill
 	syscall
 	j	$31
 	.end Kill

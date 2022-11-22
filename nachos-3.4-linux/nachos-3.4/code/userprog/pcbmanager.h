@@ -12,9 +12,8 @@ class PCBManager {
         ~PCBManager();
 
         PCB* AllocatePCB();
-        int DeallocatePCB(PCB* pcb);
+        void DeallocatePCB(PCB* pcb);
         PCB* GetPCB(int pid);
-        int NumProc();
 
     private:
         BitMap* bitmap;

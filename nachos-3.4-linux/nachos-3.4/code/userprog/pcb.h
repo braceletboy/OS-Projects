@@ -16,8 +16,11 @@ public:
 
     int GetPID();
     PCB* GetParent();
-    void SetParentNull();
-    int exitStatus;
+    List* GetChildren();
+    void SetParent(PCB *new_parent);
+    int exitStatus;  //  -9999 means not exited, 9999 means exited by a kill
+                     //  from another process, -1 means exited unsuccessfully,
+                     //  any other value means exited successfully
 
 private:
     int pid;

@@ -30,44 +30,58 @@
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Exit\n", pid);
-    printf("Process %d exits with status %d\n", pid, status);
 
+    // 1. Set the exit status
     currentThread->space->pcb->exitStatus = status;
 
-    // Manage PCB memory As a parent process
+    // 2. Make changes to the PCB tree
     PCB* pcb = currentThread->space->pcb;
     pcb->DeleteExitedChildrenSetParentNull();
 
-    // Manage PCB memory As a child process
-    if(pcb->GetParent() == NULL)
-        pcbManager->DeallocatePCB(pcb);
+    // 3. Delete PCB if necessary
+    if(pcb->GetParent() == NULL) pcbManager->DeallocatePCB(pcb);
+
+    // 4. Delete address space
     delete currentThread->space;
 
+    // 5. Delete thread of execution
+    printf("Process %d exits with status %d\n", pid, status);
     currentThread->Finish();
+
 }
 
 
 void startChildProcess(int dummy) {
-    currentThread->RestoreUserState();
-    currentThread->space->RestoreState();
+    // currentThread->RestoreUserState();
+    // currentThread->space->RestoreState();
     machine->Run();
 }
 
 int doFork(int functionAddr) {
-    printf("System Call: %d invoked Fork\n", currentThread->space->pcb->GetPID());
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Fork\n", pid);
+
+    // 1. Allocate an address space for the forked process
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
     if (!childAddrSpace->IsValid())
     {
         return -1;
     }
+    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
+            pid, functionAddr, childAddrSpace->GetNumPages()
+    );
 
-    Thread* childThread = new Thread("childThread");
-    childThread->space = childAddrSpace;
-
+    // 2. Allocate a pcb for the forked process
     PCB* pcb = pcbManager->AllocatePCB();
     childAddrSpace->pcb = pcb;
-    currentThread->space->pcb->AddChild(pcb);
 
+    // 3. Allocate a thread for the forked process
+    char threadName[20];
+    sprintf(threadName, "childThread_%d", pcb->GetPID());
+    Thread* childThread = new Thread(threadName);
+    childThread->space = childAddrSpace;
+
+    // 4. Setup the machine state for forked process
     currentThread->SaveUserState();
 
     machine->WriteRegister(PCReg, functionAddr);
@@ -77,33 +91,155 @@ int doFork(int functionAddr) {
 
     currentThread->RestoreUserState();
 
+    // 5. Setup the execution switch stack for the forked process
     childThread->Fork(startChildProcess, 0);
-    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
-            currentThread->space->pcb->GetPID(),
-            functionAddr,
-            childAddrSpace->GetNumPages()
-    );
+
+    // 6. Add the forked pcb to the current pcb as child
+    currentThread->space->pcb->AddChild(pcb);
 
     return pcb->GetPID();
 }
 
+//---------------------------------------------------------------------
+// doExec
+//  Helper function for performing the exec system call
+//
+//  This function assumes that the current thread already has an address
+//  space. This is a reasonable assumption because new processes are
+//  created using fork and a fork always creates a new address space for
+//  the forked process.
+//
+//  "filename" is the name of the executable that needs to be loaded
+//  into the current address space.
+//
+//  Returns 0 if successful else -1
+//---------------------------------------------------------------------
+
 int doExec(char* filename) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Exec\n", pid);
+    AddrSpace *current_addrspace = currentThread->space;
 
+    // 1. Read the executable
+    OpenFile *executable = fileSystem->Open(filename);
+    if (executable == NULL)
+    {
+        printf("Unable to open file %s\n", filename);
+        return -1;
+    }
+
+    printf("Exec Program: %d loading %s\n", pid, filename);
+
+    // 2. Replace the process memory with the content of the executable
+    PCB *current_pcb = current_addrspace->pcb;
+    delete current_addrspace;
+
+    AddrSpace *executable_addrspace = new AddrSpace(executable);
+    if(!executable_addrspace->IsValid()) return -1;
+    executable_addrspace->pcb = current_pcb;
+    currentThread->space = executable_addrspace;
+
+    delete executable;
+
+    // 3. Set the registers, pageTable & pageTableSize for the machine
+    executable_addrspace->InitRegisters();
+    executable_addrspace->RestoreState();
+    return 0;
 }
 
+//---------------------------------------------------------------------
+// doJoin
+//  Helper function for making current process join on another process
+//
+//  "join_pid" is the process we want to join on
+//
+//  Returns -9999 if the join was unsuccessful else the exit status of
+//  of the joined process
+//---------------------------------------------------------------------
 
-int doJoin(int pid) {
+int doJoin(int join_pid) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Join\n", pid);
 
+    // 1. Check if process joining on itself
+    if(join_pid == pid)
+    {
+        printf("Process %d trying to join on itself: note allowed\n",
+               join_pid);
+        return -9999;
+    }
+
+    // 2. Check if parent is calling join on child
+    PCB *join_pcb = pcbManager->GetPCB(join_pid);
+    PCB *jp_parent_pcb = join_pcb->GetParent();
+
+    if(jp_parent_pcb->GetPID() != pid)
+    {
+        printf("Non parent process %d trying to join on %d: not allowed\n",
+              pid, join_pid);
+        return -9999;
+    }
+    while(!join_pcb->HasExited()) currentThread->Yield();
+    DEBUG('a', "Process %d joined on %d\n", pid, join_pid);
+    return join_pcb->exitStatus;
 }
 
+//--------------------------------------------------------------------
+// doKill
+//  Helper function for performing the Kill system call
+//
+//  Returns 0 if successful else -1
+//--------------------------------------------------------------------
 
-int doKill (int pid) {
+int doKill (int kill_pid) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Kill\n", pid);
 
+    // 1. Call Exit if the to be killed process is same as current process
+    if(kill_pid == pid)
+    {
+        doExit(9999);
+        return 0;
+    }
+    else
+    {
+        PCB *killed_pcb = pcbManager->GetPCB(kill_pid);
+
+        // 2. Check if the process to be killed exists
+        if(killed_pcb == NULL)
+        {
+            printf("Process %d cannot be kill process %d: doesn't exist\n",
+                   pid, kill_pid);
+            return -1;
+        }
+
+        // 3. Set the exit status
+        killed_pcb->exitStatus = 9999;
+
+        // 3. Make changes to the PCB tree
+        killed_pcb->DeleteExitedChildrenSetParentNull();
+        PCB *kp_parent_pcb = killed_pcb->GetParent();
+
+        // 4. Delete PCB if necessary
+        if(kp_parent_pcb == NULL) pcbManager->DeallocatePCB(killed_pcb);
+
+        // 5. Delete address space
+        Thread *kp_thread = scheduler->UnSchedule(kill_pid);
+        delete kp_thread->space;
+
+        // 6. Delete thread of execution
+        delete kp_thread;
+
+        printf("Process %d killed process %d\n", pid, kill_pid);
+        return 0;
+    }
 }
 
 
 
 void doYield() {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("System Call: %d invoked Yield\n", pid);
     currentThread->Yield();
 }
 
