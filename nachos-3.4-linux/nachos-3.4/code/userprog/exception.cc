@@ -281,6 +281,23 @@ void doCreate(char* fileName)
     fileSystem->Create(fileName, 0);
 }
 
+
+void doOpen(char* filename)
+{
+    // Check if file already open - process open files list - change PCB
+    // If not open, check if file is opened on system wide, if not then open
+    // Otherwise, just create a new entry for process open files pointing to system open file
+    // -> Implement system-wide open files manager
+    // return ID
+}
+
+void doWrite(char *buffer, int size, OpenFileId id)
+{
+    char buffer[100];
+    // Transfer data from user program to buffer - need to implement a function
+    // Write from buffer to file using openfile
+}
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
