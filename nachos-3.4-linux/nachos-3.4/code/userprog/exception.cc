@@ -27,6 +27,13 @@
 #include "addrspace.h"
 #include "thread.h"
 
+//---------------------------------------------------------------------
+// doExit
+//  Helper function for performing the Exit system call
+//
+//  "status" is the status with which the process will exit
+//---------------------------------------------------------------------
+
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Exit\n", pid);
@@ -50,12 +57,26 @@ void doExit(int status) {
 
 }
 
+//---------------------------------------------------------------------
+// startChildProcess
+//  Helper function to get the forked processes to also simulate
+//  instructions
+//
+//  "dummy" is a dummy int argument required by the Thread::Fork
+//  function
+//---------------------------------------------------------------------
 
 void startChildProcess(int dummy) {
-    // currentThread->RestoreUserState();
-    // currentThread->space->RestoreState();
     machine->Run();
 }
+
+//---------------------------------------------------------------------
+// doFork
+//  Helper function for performing the Fork system call
+//
+//  "functionAddr" is the function that immediately gets executed in
+//  the forked process
+//---------------------------------------------------------------------
 
 int doFork(int functionAddr) {
     int pid = currentThread->space->pcb->GetPID();
@@ -65,7 +86,7 @@ int doFork(int functionAddr) {
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
     if (!childAddrSpace->IsValid())
     {
-        DEBUG('a', "Process %d Fork: failed", pid);
+        DEBUG('e', "Process %d Fork: failed", pid);
         return -1;
     }
     printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
@@ -125,7 +146,7 @@ int doExec(char* filename) {
     OpenFile *executable = fileSystem->Open(filename);
     if (executable == NULL)
     {
-        printf("Unable to open file %s\n", filename);
+        DEBUG('e', "Unable to open file %s\n", filename);
         return -1;
     }
 
@@ -174,7 +195,7 @@ int doJoin(int join_pid) {
     PCB *join_pcb = pcbManager->GetPCB(join_pid);
     if(join_pcb == NULL)
     {
-        DEBUG('a', "Process %d cannot join process %d: doesn't exist\n",
+        DEBUG('e', "Process %d cannot join process %d: doesn't exist\n",
                 pid, join_pid);
         return -1;
     }
@@ -183,12 +204,12 @@ int doJoin(int join_pid) {
     PCB *jp_parent_pcb = join_pcb->GetParent();
     if((jp_parent_pcb  == NULL) || (jp_parent_pcb->GetPID() != pid))
     {
-        DEBUG('a', "Non parent %d trying to join on %d: not allowed\n",
+        DEBUG('e', "Non parent %d trying to join on %d: not allowed\n",
               pid, join_pid);
         return -9999;
     }
     while(!join_pcb->HasExited()) currentThread->Yield();
-    DEBUG('a', "Process %d joined on %d\n", pid, join_pid);
+    DEBUG('e', "Process %d joined on %d\n", pid, join_pid);
     return join_pcb->exitStatus;
 }
 
@@ -216,7 +237,7 @@ int doKill (int kill_pid) {
         // 2. Check if the process to be killed exists
         if(killed_pcb == NULL)
         {
-            DEBUG('a', "Process %d cannot kill process %d: doesn't exist\n",
+            printf("Process %d cannot kill process %d: doesn't exist\n",
                    pid, kill_pid);
             return -1;
         }
@@ -243,13 +264,26 @@ int doKill (int kill_pid) {
     }
 }
 
-
+//--------------------------------------------------------------------
+// doYield
+//  Helper function for performing the Yield system call
+//--------------------------------------------------------------------
 
 void doYield() {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Yield\n", pid);
     currentThread->Yield();
 }
+
+//--------------------------------------------------------------------
+// incrementPC
+//  Increment the program counter by one instruction.
+//
+//  Required for system calls because this update, that usually happens
+//  at the end of an instruction inside the machine - refer to the
+//  OneInstruction function, is not reached when the machine
+//  interrupts due to a system call and traps into the NachOS kernel.
+//--------------------------------------------------------------------
 
 void incrementPC() {
     int oldPCReg = machine->ReadRegister(PCReg);
@@ -334,7 +368,7 @@ ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
+	DEBUG('e', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
     } else  if ((which == SyscallException) && (type == SC_Exit)) {
         // Implement Exit system call
