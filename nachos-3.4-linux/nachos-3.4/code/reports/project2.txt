@@ -1,0 +1,17 @@
+Group Number: 1
+All the code can be compiled by just running make from "code/" directory. No additional macros or changes to Makefile are required.
+
+If you want to see the debug messages while testing then use the "-d e" option to get the debug messages for the syscalls. This 'e' flag is only used in the "userprog/exeception.cc" file.
+
+The following is the status of our project:
+1. Fork: Completed. Can be tested by going to the "userprog/" directory and running "./nachos -x ../test/fork" after compilation.
+2. Exec: Completed. Can be tested by going to the "userprog/" directory and running "./nachos -x ../test/exec" after compilation.
+3. Kill: Completed. Can be tested by going to the "userprog/" directory and running "./nachos -x ../test/kill" after compilation.
+4. Join: Completed. Can be tested by going to the "userprog/" directory and running "./nachos -x ../test/join" after compilation.
+5. Exit: Completed.
+6. Yield: Completed.
+
+
+The following is a brief summary of our implemenation details that are different from what the professor suggested to implement in his videos:
+1. The PCB Class in pcb.h is slightly different from that of the professor in that we don't store a pointer to the thread corresponding to the pcb instance. This removes circular dependencies and forward declarations - untangling the code.
+2. Added the UnSchedule function to the scheduler class to remove the killed process from the scheduler.
