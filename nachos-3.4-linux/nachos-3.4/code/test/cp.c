@@ -9,20 +9,20 @@ int main() {
 
 	src = Open("in.dat");
 	if (src < 0) Exit(100);
-	Write("cp: Input destination file name:\n", 34, ConsoleOutput );        
+	Write("cp: Input destination file name:\n", 34, ConsoleOutput );
 	i = 0;
 	do{
 		Read(&out[i], 1, ConsoleInput);
 	} while(out[i++]!='\n');
-	
+
 	out[--i] = '\0';
-        
+
 	Create(out);
 	dst = Open(out);
 	if (dst < 0) Exit(-200);
 
 
-	while ( (count = Read(buf, 5, src)) > 0 ) 
+	while ( (count = Read(buf, 5, src)) > 0 )
 	{
 	    Write(buf, count, dst);
 	}

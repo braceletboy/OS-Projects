@@ -83,7 +83,7 @@ int doFork(int functionAddr) {
     printf("System Call: %d invoked Fork\n", pid);
 
     // 1. Allocate an address space for the forked process
-    AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
+    AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));
     if (!childAddrSpace->IsValid())
     {
         DEBUG('e', "Process %d Fork: failed", pid);
