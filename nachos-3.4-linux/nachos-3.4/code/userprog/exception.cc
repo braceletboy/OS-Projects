@@ -65,6 +65,7 @@ int doFork(int functionAddr) {
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));    
     if (!childAddrSpace->IsValid())
     {
+        DEBUG('a', "Process %d Fork: failed", pid);
         return -1;
     }
     printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
@@ -169,13 +170,20 @@ int doJoin(int join_pid) {
         return -9999;
     }
 
-    // 2. Check if parent is calling join on child
+    // 2. Check if process to join exists
     PCB *join_pcb = pcbManager->GetPCB(join_pid);
-    PCB *jp_parent_pcb = join_pcb->GetParent();
-
-    if(jp_parent_pcb->GetPID() != pid)
+    if(join_pcb == NULL)
     {
-        printf("Non parent process %d trying to join on %d: not allowed\n",
+        DEBUG('a', "Process %d cannot join process %d: doesn't exist\n",
+                pid, join_pid);
+        return -1;
+    }
+
+    // 3. Check if parent is calling join on child
+    PCB *jp_parent_pcb = join_pcb->GetParent();
+    if((jp_parent_pcb  == NULL) || (jp_parent_pcb->GetPID() != pid))
+    {
+        DEBUG('a', "Non parent %d trying to join on %d: not allowed\n",
               pid, join_pid);
         return -9999;
     }
@@ -208,7 +216,7 @@ int doKill (int kill_pid) {
         // 2. Check if the process to be killed exists
         if(killed_pcb == NULL)
         {
-            printf("Process %d cannot be kill process %d: doesn't exist\n",
+            DEBUG('a', "Process %d cannot kill process %d: doesn't exist\n",
                    pid, kill_pid);
             return -1;
         }

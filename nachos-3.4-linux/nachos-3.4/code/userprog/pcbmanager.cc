@@ -85,10 +85,14 @@ void PCBManager::DeallocatePCB(PCB *pcb)
 // PCBManager::GetPCB
 //  Return a pointer to the pcb instance for the given pid
 //
+//  If the pid is invalid then a NULL pointer is returned to indicate
+//  invalid PCB.
+//
 //  "pid" is the given pid
 //--------------------------------------------------------------------
 
 PCB *PCBManager::GetPCB(int pid)
 {
+    if(pid < 0) return NULL;
     return pcbs[pid];
 }
