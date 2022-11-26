@@ -301,7 +301,6 @@ void doOpen(char* filename)
 
 void doWrite(char *buffer, int size, OpenFileId id)
 {
-    char buffer[100];
     // Transfer data from user program to buffer - need to implement a function
     // Write from buffer to file using openfile
 }
