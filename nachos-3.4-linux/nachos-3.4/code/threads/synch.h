@@ -67,7 +67,8 @@ class Lock {
   public:
     Lock(const char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
-#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* getName() { return name; }
 #else
     char* getName() { return name; }	// debugging assist
@@ -82,7 +83,8 @@ class Lock {
 					// Condition variable ops below.
 
   private:
-#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* name;  // for debugging
     Thread *acquiredThread;  // thread that acquired the lock
     List *queue;      // threads waiting to acquire the lock
@@ -129,7 +131,8 @@ class Condition {
     Condition(const char* debugName);		// initialize condition to 
 					// "no one waiting"
     ~Condition();			// deallocate the condition
-#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* getName() { return (name); }
 #else
     char* getName() { return (name); }
@@ -144,7 +147,8 @@ class Condition {
 					// these operations
 
   private:
-#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* name;
     List *queue;
 #else

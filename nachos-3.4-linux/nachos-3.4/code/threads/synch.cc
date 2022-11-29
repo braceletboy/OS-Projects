@@ -97,7 +97,8 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
 //----------------------------------------------------------------------
 // Lock::Lock
 //  Initialize a lock, so that it can be used for synchronization.
@@ -191,7 +192,8 @@ void Lock::Acquire() {}
 void Lock::Release() {}
 #endif
 
-#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
 //----------------------------------------------------------------------
 // Condition::Condition(const char* debugName)
 // 	Initialize a condition variable, so that it can be used for
