@@ -35,7 +35,7 @@ CPP = gcc -m32 -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort fork join kill exec memory
+all: halt shell matmult sort fork join kill exec memory cp concurrentRead
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.c > strt.s
@@ -46,25 +46,25 @@ fork.o: fork.c
 	$(CC) $(CFLAGS) fork.c
 fork: fork.o start.o
 	$(LD) $(LDFLAGS) start.o fork.o -o fork.coff
-	../bin/coff2noff fork.coff fork 
+	../bin/coff2noff fork.coff fork
 
 join.o: join.c
 	$(CC) $(CFLAGS) join.c
 join:   join.o start.o
 	$(LD) $(LDFLAGS) start.o join.o -o join.coff
-	../bin/coff2noff join.coff join 
+	../bin/coff2noff join.coff join
 
 kill.o: kill.c
 	$(CC) $(CFLAGS) kill.c
 kill:   kill.o start.o
 	$(LD) $(LDFLAGS) start.o kill.o -o kill.coff
-	../bin/coff2noff kill.coff kill 
+	../bin/coff2noff kill.coff kill
 
 exec.o: exec.c
 	$(CC) $(CFLAGS) exec.c
 exec: exec.o start.o
 	$(LD) $(LDFLAGS) start.o exec.o -o exec.coff
-	../bin/coff2noff exec.coff exec 
+	../bin/coff2noff exec.coff exec
 
 halt.o: halt.c
 	$(CC) $(CFLAGS) -c halt.c
@@ -94,4 +94,16 @@ memory.o: memory.c
 	$(CC) $(CFLAGS) memory.c
 memory: memory.o start.o
 	$(LD) $(LDFLAGS) start.o memory.o -o memory.coff
-	../bin/coff2noff memory.coff memory 
+	../bin/coff2noff memory.coff memory
+
+cp.o: cp.c
+	$(CC) $(CFLAGS) cp.c
+cp: cp.o start.o
+	$(LD) $(LDFLAGS) start.o cp.o -o cp.coff
+	../bin/coff2noff cp.coff cp
+
+concurrentRead.o: concurrentRead.c
+	$(CC) $(CFLAGS) concurrentRead.c
+concurrentRead: concurrentRead.o start.o
+	$(LD) $(LDFLAGS) start.o concurrentRead.o -o concurrentRead.coff
+	../bin/coff2noff concurrentRead.coff concurrentRead
