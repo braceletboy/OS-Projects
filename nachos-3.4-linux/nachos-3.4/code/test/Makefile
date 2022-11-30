@@ -107,3 +107,15 @@ concurrentRead.o: concurrentRead.c
 concurrentRead: concurrentRead.o start.o
 	$(LD) $(LDFLAGS) start.o concurrentRead.o -o concurrentRead.coff
 	../bin/coff2noff concurrentRead.coff concurrentRead
+
+rw.o: rw.c
+	$(CC) $(CFLAGS) rw.c
+rw: rw.o start.o
+	$(LD) $(LDFLAGS) start.o rw.o -o rw.coff
+	../bin/coff2noff rw.coff rw
+
+cat.o: cat.c
+	$(CC) $(CFLAGS) cat.c
+cat: cat.o start.o
+	$(LD) $(LDFLAGS) start.o cat.o -o cat.coff
+	../bin/coff2noff cat.coff cat
