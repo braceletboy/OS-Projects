@@ -1,7 +1,7 @@
 #include "syscall.h"
 
 void fastRead(){
-	SpaceId src;
+	OpenFileId src;
 	int count;
 	char buf[10];
 	int totalRead;
@@ -22,7 +22,7 @@ void fastRead(){
 
 int main()
 {
-        SpaceId src;
+        OpenFileId src;
         int count;
         char buf[10];
         int totalRead;

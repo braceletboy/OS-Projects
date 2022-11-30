@@ -3,7 +3,7 @@
 int main() {
 	char buf[50];
 	char out[50];
-	SpaceId dst, src;
+	OpenFileId dst, src;
 	int count;
 	int i;
 
