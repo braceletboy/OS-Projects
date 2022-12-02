@@ -173,6 +173,7 @@ Scheduler::UnSchedule(int pid)
                 void *item = tempList->Remove();
                 readyList->Prepend(item);
             }
+            delete tempList;
             return removed_thread;
         }
         // store removed item in the temp list
