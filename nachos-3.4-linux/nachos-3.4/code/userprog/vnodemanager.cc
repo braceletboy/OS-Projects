@@ -90,7 +90,6 @@ void VNodeManager::RelieveVNode(VNode* vnode)
 {
     vnmLock->Acquire();
 
-    if(currentThread) // TODO
     vnode->DecreaseRef();
     if(!vnode->IsActive()) vnodes->RemoveItem((void *) vnode);
 
