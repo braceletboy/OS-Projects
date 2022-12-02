@@ -155,3 +155,12 @@ void PCB::DeallocateFD(int fid)
     oft->DeallocateOFD(ofd);
     ofds[fid] = NULL;
 }
+
+//----------------------------------------------------------------------
+// PCB::GetOFD
+//  Get the  (file id)
+//----------------------------------------------------------------------
+OFD *PCB::GetOFD(int fid)
+{
+    return ofds[fid];
+}

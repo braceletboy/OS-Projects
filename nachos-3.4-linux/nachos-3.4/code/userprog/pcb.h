@@ -3,6 +3,7 @@
 
 #include "list.h"
 #include "bitmap.h"
+#include "ofd.h"
 
 class PCB
 {
@@ -25,6 +26,7 @@ public:
 
     int AllocateFD(char *fileName);
     void DeallocateFD(int fid);
+    OFD *GetOFD(int fid);
 
 private:
     int pid;
