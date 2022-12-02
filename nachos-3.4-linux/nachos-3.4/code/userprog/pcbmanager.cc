@@ -32,6 +32,7 @@ PCBManager::~PCBManager()
 {
     delete bitmap;
     delete pcbs;
+    delete pcbManagerLock;
 }
 
 //--------------------------------------------------------------------

@@ -32,6 +32,7 @@ MemoryManager::MemoryManager() {
 MemoryManager::~MemoryManager() {
 
     delete bitmap;
+    delete mmLock;
 
 }
 
