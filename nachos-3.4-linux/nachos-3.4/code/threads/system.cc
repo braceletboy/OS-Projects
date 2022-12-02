@@ -31,6 +31,9 @@ SynchDisk   *synchDisk;
 Machine *machine;	// user program memory and registers
 MemoryManager *mm;
 PCBManager *pcbManager;
+
+VNodeManager *vnm;
+OpenFileTable *oft;
 #endif
 
 #ifdef NETWORK
@@ -153,6 +156,9 @@ Initialize(int argc, char **argv)
     machine = new Machine(debugUserProg);	// this must come first
     mm = new MemoryManager();
     pcbManager = new PCBManager(MAX_PROCESSES);
+
+    vnm = new VNodeManager();
+    oft = new OpenFileTable(MAX_TOTAL_OFDS);
 #endif
 
 #ifdef FILESYS
