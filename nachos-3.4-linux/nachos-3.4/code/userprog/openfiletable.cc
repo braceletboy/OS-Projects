@@ -1,8 +1,16 @@
 // openfiletable.cc
-//  The implementation for managing User Open File objects.
+//  The implementation for managing User Open File objects. This is similar
+//  to the Open File Table in Unix.
 
 #include "openfiletable.h"
 
+//------------------------------------------------------------------------
+// OpenFileTable::OpenFileTable
+//  Constructor.
+//
+//  "maxOFDs" The maximum number of open file descriptors that the open
+//  file table can store.
+//------------------------------------------------------------------------
 OpenFileTable::OpenFileTable(int maxOFDs)
 {
     bitmap = new BitMap(maxOFDs);
@@ -15,6 +23,10 @@ OpenFileTable::OpenFileTable(int maxOFDs)
     oftLock = new Lock("open file table lock");
 }
 
+//------------------------------------------------------------------------
+// OpenFileTable::~OpenFileTable
+//  Destructor.
+//------------------------------------------------------------------------
 OpenFileTable::~OpenFileTable()
 {
     delete bitmap;
@@ -22,6 +34,14 @@ OpenFileTable::~OpenFileTable()
     delete oftLock;
 }
 
+//------------------------------------------------------------------------
+// OpenFileTable::AllocateOFD
+//  Allocate an open file descriptor to the invoking process.
+//
+//  "fileName" The file that the process wants to open.
+//
+//  Returns a pointer to the allocated OFD.
+//------------------------------------------------------------------------
 OFD *OpenFileTable::AllocateOFD(char *fileName)
 {
     oftLock->Acquire();
@@ -41,16 +61,29 @@ OFD *OpenFileTable::AllocateOFD(char *fileName)
     }
 }
 
+//------------------------------------------------------------------------
+// OpenFileTable::DeallocateOFD
+//  Delete the allocated given open file descriptor if unused.
+//
+//  If the given open file descriptor is being used by other processes,
+//  then this function only decreases the reference count of the OFD.
+//  When the reference count reaches zero (i.e.) no process using it, then
+//  the OFD gets deleted.
+//------------------------------------------------------------------------
 void OpenFileTable::DeallocateOFD(OFD *ofd)
 {
     if (ofd == NULL) return;
 
     oftLock->Acquire();
 
-    int ofdID = ofd->GetID();
-    bitmap->Clear(ofdID);
-    entries[ofdID] = NULL;
-    delete ofd;
+    ofd->DecreaseRef();
+    if(!ofd->IsActive())
+    {
+        int ofdID = ofd->GetID();
+        bitmap->Clear(ofdID);
+        entries[ofdID] = NULL;
+        delete ofd;
+    }
 
     oftLock->Release();
 }
