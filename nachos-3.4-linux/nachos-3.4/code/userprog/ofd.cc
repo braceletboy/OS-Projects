@@ -20,6 +20,7 @@ OFD::OFD(char *fileName, int id)
     ofdID = id;
     name = fileName;
     fileVNode = vnm->AssignVNode(fileName);
+    refCount = 1;  // one FD points to this OFD at creation
 }
 
 //------------------------------------------------------------------------
@@ -40,4 +41,34 @@ OFD::~OFD()
 int OFD::GetID()
 {
     return ofdID;
+}
+
+//------------------------------------------------------------------------
+// OFD::IncreaseRef
+//  Return the index of the OFD in the Open File Table.
+//------------------------------------------------------------------------
+void OFD::IncreaseRef()
+{
+    refCount++;
+}
+
+//------------------------------------------------------------------------
+// OFD::DecreaseRef
+//  Return the index of the OFD in the Open File Table.
+//------------------------------------------------------------------------
+void OFD::DecreaseRef()
+{
+    ASSERT(refCount > 0);
+    refCount--;
+}
+
+//------------------------------------------------------------------------
+// OFD::IsActive
+//  Return whether the OFD is being used by processes or not.
+//
+//  If there are no FDs pointing to the OFD then it's not active.
+//------------------------------------------------------------------------
+bool OFD::IsActive()
+{
+    return (refCount > 0);
 }
