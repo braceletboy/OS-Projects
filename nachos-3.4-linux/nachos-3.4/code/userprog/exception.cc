@@ -82,19 +82,35 @@ int doFork(int functionAddr) {
     int pid = currentThread->space->pcb->GetPID();
     printf("System Call: %d invoked Fork\n", pid);
 
-    // 1. Allocate an address space for the forked process
+    // 1. Allocate a pcb for the forked process
+    PCB* pcb = pcbManager->AllocatePCB();
+    if(pcb == NULL)
+    {
+        DEBUG(
+            'e', "Process %d Fork: failed. Maximum PCB limit reached.", pid
+        );
+        return -1;
+    }
+
+    // 2. Allocate an address space for the forked process
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));
     if (!childAddrSpace->IsValid())
     {
-        DEBUG('e', "Process %d Fork: failed", pid);
+        DEBUG(
+            'e',
+            "Process %d Fork: failed. Insufficient memory for address space",
+            pid
+        );
+
+        // clean up
+        pcbManager->DeallocatePCB(pcb);
+        delete childAddrSpace;
+
         return -1;
     }
     printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
             pid, functionAddr, childAddrSpace->GetNumPages()
     );
-
-    // 2. Allocate a pcb for the forked process
-    PCB* pcb = pcbManager->AllocatePCB();
     childAddrSpace->pcb = pcb;
 
     // 3. Allocate a thread for the forked process
@@ -146,7 +162,8 @@ int doExec(char* filename) {
     OpenFile *executable = fileSystem->Open(filename);
     if (executable == NULL)
     {
-        DEBUG('e', "Unable to open file %s\n", filename);
+        DEBUG('e', "Process %d Exec: failed. Unable to open file %s\n",
+                pid, filename);
         return -1;
     }
 
@@ -157,9 +174,21 @@ int doExec(char* filename) {
     delete current_addrspace;
 
     AddrSpace *executable_addrspace = new AddrSpace(executable);
-    if(!executable_addrspace->IsValid()) return -1;
     executable_addrspace->pcb = current_pcb;
     currentThread->space = executable_addrspace;
+    if(!executable_addrspace->IsValid())
+    {
+        DEBUG(
+            'e',
+            "Process %d Exec: failed. Insufficient memory for address space",
+            pid
+        );
+
+        // clean up
+        doExit(-1);
+
+        return -1;
+    }
 
     delete executable;
 

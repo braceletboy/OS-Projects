@@ -39,7 +39,8 @@ PCBManager::~PCBManager()
 // PCBManager::AllocatePCB
 //  Allocate a pcb to the calling process
 //
-//  Returns a pointer to the allocated pcb
+//  Returns a pointer to the allocated pcb. NULL pointer if unable to
+//  allocate
 //--------------------------------------------------------------------
 
 PCB *PCBManager::AllocatePCB()
@@ -48,12 +49,18 @@ PCB *PCBManager::AllocatePCB()
     pcbManagerLock->Acquire();
 
     int pid = bitmap->Find();
-    ASSERT(pid != -1);  // TODO - don't use assert
-    pcbs[pid] = new PCB(pid);
-
-    pcbManagerLock->Release();
-
-    return pcbs[pid];
+    if(pid != -1)
+    {
+        pcbs[pid] = new PCB(pid);
+        pcbManagerLock->Release();
+        return pcbs[pid];
+    }
+    else
+    {
+        // max pcb limit reached
+        pcbManagerLock->Release();
+        return NULL;
+    }
 }
 
 //--------------------------------------------------------------------

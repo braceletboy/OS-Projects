@@ -34,6 +34,7 @@ StartProcess(char *filename)
     ASSERT(space->IsValid());
     currentThread->space = space;
     currentThread->space->pcb = pcbManager->AllocatePCB();
+    ASSERT(currentThread->space->pcb != NULL);
 
     delete executable;			// close file
 
