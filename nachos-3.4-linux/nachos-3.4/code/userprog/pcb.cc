@@ -17,6 +17,14 @@ PCB::PCB(int id)
         parent = currentThread->space->pcb;
     children = new List();
     exitStatus = -9999; // hasn't exited
+
+    bitmap = new BitMap(MAX_PROC_OFDS);
+    ofds = new OFD*[MAX_PROC_OFDS];
+
+    for(int i = 0; i < MAX_PROC_OFDS; i++)
+    {
+        ofds[i] = NULL;
+    }
 }
 
 //--------------------------------------------------------------------
@@ -116,4 +124,34 @@ void PCB::DeleteExitedChildrenSetParentNull()
             child->SetParent(NULL);
         child = (PCB *)children->Remove();
     }
+}
+
+//----------------------------------------------------------------------
+// PCB::AllocateFD
+//  Return the file descriptor (file id) allocated
+//
+//  "fileName" is the name of the file
+//----------------------------------------------------------------------
+int PCB::AllocateFD(char *fileName)
+{
+    int fid = bitmap->Find();
+    if(fid != -1)
+    {
+        ofds[fid] = oft->AllocateOFD(fileName);
+    }
+    return fid;
+}
+
+//----------------------------------------------------------------------
+// PCB::DeallocateFD
+//  Remove the given file descriptor (file id)
+//----------------------------------------------------------------------
+void PCB::DeallocateFD(int fid)
+{
+    if(fid < 0) return;
+
+    bitmap->Clear(fid);
+    OFD *ofd = ofds[fid];
+    oft->DeallocateOFD(ofd);
+    ofds[fid] = NULL;
 }
