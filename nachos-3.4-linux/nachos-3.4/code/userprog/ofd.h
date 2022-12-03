@@ -21,6 +21,7 @@
 #define OFD_H
 
 #include "vnode.h"
+#include "synch.h"
 
 class OFD
 {
@@ -33,11 +34,17 @@ class OFD
         void DecreaseRef();
         bool IsActive();
 
+        int Read(char *into, int nBytes);
+        int Write(char *from, int nBytes);
+
     private:
-        int ofdID;  // index of the OFD in the Open File Table
+        int ofdID;  // index of the OFD in the (Global) Open File Table
         char *name;  // name of the file
         VNode *fileVNode;  // Associated VNode
         int refCount;  // the number of file descriptors pointing to the OFD
+        int fileOffSet;  // the file offset in bytes
+        Lock *syncLock;  // lock for synchronized access - two processes
+        // sharing an OFD should access it synchronously
 };
 
 #endif  // OFD_H

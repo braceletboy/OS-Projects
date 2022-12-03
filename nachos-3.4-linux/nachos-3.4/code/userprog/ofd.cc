@@ -21,6 +21,11 @@ OFD::OFD(char *fileName, int id)
     name = fileName;
     fileVNode = vnm->AssignVNode(fileName);
     refCount = 1;  // one FD points to this OFD at creation
+    fileOffSet = 0;
+
+    char lockName[100];
+    snprintf(lockName, sizeof(lockName), "ofd-%d sync lock", id);
+    syncLock = new Lock(lockName);
 }
 
 //------------------------------------------------------------------------
@@ -32,6 +37,7 @@ OFD::OFD(char *fileName, int id)
 OFD::~OFD()
 {
     vnm->RelieveVNode(fileVNode);
+    delete syncLock;
 }
 
 //------------------------------------------------------------------------
@@ -49,7 +55,9 @@ int OFD::GetID()
 //------------------------------------------------------------------------
 void OFD::IncreaseRef()
 {
+    syncLock->Acquire();
     refCount++;
+    syncLock->Release();
 }
 
 //------------------------------------------------------------------------
@@ -58,8 +66,10 @@ void OFD::IncreaseRef()
 //------------------------------------------------------------------------
 void OFD::DecreaseRef()
 {
+    syncLock->Acquire();
     ASSERT(refCount > 0);
     refCount--;
+    syncLock->Release();
 }
 
 //------------------------------------------------------------------------
@@ -71,4 +81,38 @@ void OFD::DecreaseRef()
 bool OFD::IsActive()
 {
     return (refCount > 0);
+}
+
+//------------------------------------------------------------------------
+// OFD::Read
+//  Read from the file into the given buffer.
+//
+//  "into" is the buffer
+//  "nBytes" is the number of bytes to read
+//------------------------------------------------------------------------
+int OFD::Read(char *into, int nBytes)
+{
+    // the reading and updating of file offset need to happen atomically
+    syncLock->Acquire();
+    int bytesRead = fileVNode->ReadAt(into, nBytes, fileOffSet);
+    fileOffSet += bytesRead;
+    syncLock->Release();
+    return bytesRead;
+}
+
+//------------------------------------------------------------------------
+// OFD::Write
+//  Write from the give buffer into the file.
+//
+//  "from" is the buffer
+//  "nBytes" is the number of bytes to read
+//------------------------------------------------------------------------
+int OFD::Write(char *from, int nBytes)
+{
+    // the writing and updating of file offset need to happen atomically
+    syncLock->Acquire();
+    int bytesWritten = fileVNode->WriteAt(from, nBytes, fileOffSet);
+    fileOffSet += bytesWritten;
+    syncLock->Release();
+    return bytesWritten;
 }

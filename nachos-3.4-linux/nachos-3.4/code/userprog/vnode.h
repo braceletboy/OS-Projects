@@ -7,6 +7,7 @@
 #define VNODE_H
 
 #include "openfile.h"
+#include "synch.h"
 
 class VNode
 {
@@ -19,10 +20,15 @@ class VNode
         char *GetFileName();
         bool IsActive();
 
+        int ReadAt(char *into, int nBytes, int offset);
+        int WriteAt(char *from, int nBytes, int offset);
+
     private:
         char *name;  // name of the file corresponding to the VNode Object
         OpenFile *fileObj;
         int refCount;  // the number of open connections to the file
+        Lock *syncLock;  // lock for synchronized access - two connections
+        // sharing an VNode should access it synchronously
 };
 
 #endif  // VNODE_H
