@@ -113,6 +113,11 @@ void PCB::SetParent(PCB *new_parent)
     parent = new_parent;
 }
 
+//----------------------------------------------------------------------
+// PCB::DeleteExitedChildrenSetParentNull
+//  Delete the exited children of the pcb and set the parent of the rest
+//  to NULL.
+//----------------------------------------------------------------------
 void PCB::DeleteExitedChildrenSetParentNull()
 {
     PCB *child = (PCB *)children->Remove();
@@ -162,5 +167,6 @@ void PCB::DeallocateFD(int fid)
 //----------------------------------------------------------------------
 OFD *PCB::GetOFD(int fid)
 {
+    if(fid < 0) return NULL;
     return ofds[fid];
 }
