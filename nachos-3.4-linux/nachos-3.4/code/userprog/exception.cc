@@ -355,8 +355,8 @@ void doCreate(char* fileName)
 {
     printf("Syscall Call: [%d] invoked Create.\n",
             currentThread->space->pcb->GetPID());
-    char *fileName = strcat("../test/", fileName);
-    fileSystem->Create(fileName, 0);
+    char *path = strcat((char *) "../test/", fileName);
+    fileSystem->Create(path, 0);
 }
 
 //----------------------------------------------------------------------
@@ -372,8 +372,8 @@ OpenFileId doOpen(char* fileName)
 {
     printf("Syscall Call: [%d] invoked Open.\n",
             currentThread->space->pcb->GetPID());
-    char *fileName = strcat("../test/", fileName);
-    int fid = currentThread->space->pcb->AllocateFD(fileName);
+    char *path = strcat((char *) "../test/", fileName);
+    int fid = currentThread->space->pcb->AllocateFD(path);
     return (OpenFileId) fid;
 }
 
