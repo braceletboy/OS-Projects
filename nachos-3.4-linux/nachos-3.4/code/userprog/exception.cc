@@ -346,26 +346,69 @@ char* readString(int virtualAddr) {
     return str;
 }
 
+//----------------------------------------------------------------------
+// doCreate
+//  Helper function for the close system call
+//----------------------------------------------------------------------
+
 void doCreate(char* fileName)
 {
-    printf("Syscall Call: [%d] invoked Create.\n", currentThread->space->pcb->GetPID());
+    printf("Syscall Call: [%d] invoked Create.\n",
+            currentThread->space->pcb->GetPID());
+    char *fileName = strcat("../test/", fileName);
     fileSystem->Create(fileName, 0);
 }
 
+//----------------------------------------------------------------------
+// doOpen
+//  Helper function for the close system call
+//
+//  "fileName" is the filename to open
+//
+//  Return the file id of the opened file if successful else -1
+//----------------------------------------------------------------------
 
-void doOpen(char* filename)
+OpenFileId doOpen(char* fileName)
 {
-    // Check if file already open - process open files list - change PCB
-    // If not open, check if file is opened on system wide, if not then open
-    // Otherwise, just create a new entry for process open files pointing to system open file
-    // -> Implement system-wide open files manager
-    // return ID
+    printf("Syscall Call: [%d] invoked Open.\n",
+            currentThread->space->pcb->GetPID());
+    char *fileName = strcat("../test/", fileName);
+    int fid = currentThread->space->pcb->AllocateFD(fileName);
+    return (OpenFileId) fid;
 }
+
+//----------------------------------------------------------------------
+// doRead
+//  Helper function for the close system call
+//----------------------------------------------------------------------
+
+void doRead(char *buffer, int size, OpenFileId id)
+{
+    printf("Syscall Call: [%d] invoked Read.\n",
+            currentThread->space->pcb->GetPID());
+}
+
+//----------------------------------------------------------------------------------------------------------------
+// doWrite
+//  Helper function for the close system call
+//----------------------------------------------------------------------
 
 void doWrite(char *buffer, int size, OpenFileId id)
 {
-    // Transfer data from user program to buffer - need to implement a function
-    // Write from buffer to file using openfile
+    printf("Syscall Call: [%d] invoked Write.\n",
+            currentThread->space->pcb->GetPID());
+}
+
+//----------------------------------------------------------------------
+// doClose
+//  Helper function for the close system call
+//----------------------------------------------------------------------
+
+void doClose(OpenFileId id)
+{
+    printf("Syscall Call: [%d] invoked Close.\n",
+            currentThread->space->pcb->GetPID());
+    currentThread->space->pcb->DeallocateFD((int) id);
 }
 
 //----------------------------------------------------------------------
@@ -400,8 +443,8 @@ ExceptionHandler(ExceptionType which)
 	DEBUG('e', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
     } else  if ((which == SyscallException) && (type == SC_Exit)) {
-        // Implement Exit system call
         doExit(machine->ReadRegister(4));
+        incrementPC();  // should never reach here
     } else if ((which == SyscallException) && (type == SC_Fork)) {
         int ret = doFork(machine->ReadRegister(4));
         machine->WriteRegister(2, ret);
@@ -425,8 +468,22 @@ ExceptionHandler(ExceptionType which)
         incrementPC();
     } else if((which == SyscallException) && (type == SC_Create)) {
         int virtAddr = machine->ReadRegister(4);
-        char* fileName = readString(virtAddr);
+        char *fileName = readString(virtAddr);
         doCreate(fileName);
+        incrementPC();
+    } else if((which == SyscallException) && (type == SC_Open)) {
+        int virtAddr = machine->ReadRegister(4);
+        char *fileName = readString(virtAddr);
+        OpenFileId fid = doOpen(fileName);
+        machine->WriteRegister(2, fid);
+        incrementPC();
+    } else if((which == SyscallException) && (type == SC_Write)) {
+        ;
+    } else if((which == SyscallException) && (type == SC_Read)) {
+        ;
+    } else if((which == SyscallException) && (type == SC_Close)) {
+        OpenFileId fid = machine->ReadRegister(4);
+        doClose(fid);
         incrementPC();
     } else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
