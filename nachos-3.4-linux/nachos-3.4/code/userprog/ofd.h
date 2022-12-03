@@ -17,6 +17,9 @@
 //  the same file descriptors.
 //
 
+#ifndef OFD_H
+#define OFD_H
+
 #include "vnode.h"
 
 class OFD
@@ -36,3 +39,5 @@ class OFD
         VNode *fileVNode;  // Associated VNode
         int refCount;  // the number of file descriptors pointing to the OFD
 };
+
+#endif  // OFD_H

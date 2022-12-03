@@ -5,6 +5,9 @@
 //  with the table.
 //
 
+#ifndef OFT_H
+#define OFT_H
+
 #include "bitmap.h"
 #include "ofd.h"
 #include "synch.h"
@@ -23,3 +26,5 @@ class OpenFileTable
         OFD **entries;  // the table of entries
         Lock *oftLock;
 };
+
+#endif  // OFT_H
