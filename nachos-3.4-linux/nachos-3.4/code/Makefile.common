@@ -76,6 +76,10 @@ USERPROG_H = ../userprog/addrspace.h\
 	../userprog/memorymanager.h\
 	../userprog/pcbmanager.h\
 	../userprog/pcb.h\
+	../userprog/vnodemanager.h\
+	../userprog/vnode.h\
+	../userprog/openfiletable.h\
+	../userprog/ofd.h\
 	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../machine/console.h\
@@ -88,6 +92,10 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/memorymanager.cc\
 	../userprog/pcbmanager.cc\
 	../userprog/pcb.cc\
+	../userprog/vnodemanager.cc\
+	../userprog/vnode.cc\
+	../userprog/openfiletable.cc\
+	../userprog/ofd.cc\
 	../userprog/exception.cc\
 	../userprog/progtest.cc\
 	../machine/console.cc\
@@ -96,7 +104,8 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../machine/translate.cc
 
 USERPROG_O = addrspace.o bitmap.o exception.o progtest.o console.o machine.o \
-	mipssim.o translate.o memorymanager.o pcb.o pcbmanager.o
+	mipssim.o translate.o memorymanager.o pcb.o pcbmanager.o \
+	vnode.o vnodemanager.o ofd.o openfiletable.o
 
 VM_H = 
 VM_C = 
