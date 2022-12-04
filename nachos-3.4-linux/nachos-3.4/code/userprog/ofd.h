@@ -34,6 +34,7 @@ class OFD
         void IncreaseRef();
         void DecreaseRef();
         bool IsActive();
+        const char *GetName();
 
         virtual int Read(unsigned int virtAddr, unsigned int nBytes);
         virtual int Write(unsigned int virtAddr, unsigned int nBytes);
