@@ -36,7 +36,7 @@
 
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Exit\n", pid);
+    printf("System Call: [%d] invoked Exit\n", pid);
 
     // 1. Set the exit status
     currentThread->space->pcb->exitStatus = status;
@@ -52,7 +52,7 @@ void doExit(int status) {
     delete currentThread->space;
 
     // 5. Delete thread of execution
-    printf("Process %d exits with status %d\n", pid, status);
+    printf("Process [%d] exits with status [%d]\n", pid, status);
     currentThread->Finish();
 
 }
@@ -80,14 +80,14 @@ void startChildProcess(int dummy) {
 
 int doFork(int functionAddr) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Fork\n", pid);
+    printf("System Call: [%d] invoked Fork\n", pid);
 
     // 1. Allocate a pcb for the forked process
     PCB* pcb = pcbManager->AllocatePCB();
     if(pcb == NULL)
     {
         DEBUG(
-            'e', "Process %d Fork: failed. Maximum PCB limit reached.", pid
+            'e', "Process [%d] Fork: failed. Maximum PCB limit reached.", pid
         );
         return -1;
     }
@@ -98,7 +98,8 @@ int doFork(int functionAddr) {
     {
         DEBUG(
             'e',
-            "Process %d Fork: failed. Insufficient memory for address space",
+            "Process [%d] Fork: failed. Insufficient memory for "
+            "address space",
             pid
         );
 
@@ -108,8 +109,10 @@ int doFork(int functionAddr) {
 
         return -1;
     }
-    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
-            pid, functionAddr, childAddrSpace->GetNumPages()
+    printf(
+        "Process [%d] Fork: start at address 0x%08X with %d "
+        "pages memory\n",
+        pid, functionAddr, childAddrSpace->GetNumPages()
     );
     childAddrSpace->pcb = pcb;
 
@@ -155,19 +158,19 @@ int doFork(int functionAddr) {
 
 int doExec(char* filename) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Exec\n", pid);
+    printf("System Call: [%d] invoked Exec\n", pid);
     AddrSpace *current_addrspace = currentThread->space;
 
     // 1. Read the executable
     OpenFile *executable = fileSystem->Open(filename);
     if (executable == NULL)
     {
-        DEBUG('e', "Process %d Exec: failed. Unable to open file %s\n",
+        DEBUG('e', "Process [%d] Exec: failed. Unable to open file %s\n",
                 pid, filename);
         return -1;
     }
 
-    printf("Exec Program: %d loading %s\n", pid, filename);
+    printf("Exec Program: [%d] loading %s\n", pid, filename);
 
     // 2. Replace the process memory with the content of the executable
     PCB *current_pcb = current_addrspace->pcb;
@@ -180,7 +183,8 @@ int doExec(char* filename) {
     {
         DEBUG(
             'e',
-            "Process %d Exec: failed. Insufficient memory for address space",
+            "Process [%d] Exec: failed. Insufficient memory "
+            "for address space",
             pid
         );
 
@@ -210,12 +214,12 @@ int doExec(char* filename) {
 
 int doJoin(int join_pid) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Join\n", pid);
+    printf("System Call: [%d] invoked Join\n", pid);
 
     // 1. Check if process joining on itself
     if(join_pid == pid)
     {
-        printf("Process %d trying to join on itself: note allowed\n",
+        DEBUG('e', "Process [%d] trying to join on itself: not allowed\n",
                join_pid);
         return -9999;
     }
@@ -224,7 +228,7 @@ int doJoin(int join_pid) {
     PCB *join_pcb = pcbManager->GetPCB(join_pid);
     if(join_pcb == NULL)
     {
-        DEBUG('e', "Process %d cannot join process %d: doesn't exist\n",
+        DEBUG('e', "Process [%d] cannot join process [%d]: doesn't exist\n",
                 pid, join_pid);
         return -1;
     }
@@ -233,7 +237,7 @@ int doJoin(int join_pid) {
     PCB *jp_parent_pcb = join_pcb->GetParent();
     if((jp_parent_pcb  == NULL) || (jp_parent_pcb->GetPID() != pid))
     {
-        DEBUG('e', "Non parent %d trying to join on %d: not allowed\n",
+        DEBUG('e', "Non parent [%d] trying to join on [%d]: not allowed\n",
               pid, join_pid);
         return -9999;
     }
@@ -251,7 +255,7 @@ int doJoin(int join_pid) {
 
 int doKill (int kill_pid) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Kill\n", pid);
+    printf("System Call: [%d] invoked Kill\n", pid);
 
     // 1. Call Exit if the to be killed process is same as current process
     if(kill_pid == pid)
@@ -266,7 +270,7 @@ int doKill (int kill_pid) {
         // 2. Check if the process to be killed exists
         if(killed_pcb == NULL)
         {
-            printf("Process %d cannot kill process %d: doesn't exist\n",
+            printf("Process [%d] cannot kill process [%d]: doesn't exist\n",
                    pid, kill_pid);
             return -1;
         }
@@ -288,7 +292,7 @@ int doKill (int kill_pid) {
         // 6. Delete thread of execution
         delete kp_thread;
 
-        printf("Process %d killed process %d\n", pid, kill_pid);
+        printf("Process [%d] killed process [%d]\n", pid, kill_pid);
         return 0;
     }
 }
@@ -300,7 +304,7 @@ int doKill (int kill_pid) {
 
 void doYield() {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Yield\n", pid);
+    printf("System Call: [%d] invoked Yield\n", pid);
     currentThread->Yield();
 }
 
@@ -401,14 +405,14 @@ int doRead(int virtAddr, int nBytes, OpenFileId id) {
 
     if(nBytes < 0)
     {
-        DEBUG('e', "Process %d Read: failed. Invalid size argument", pid);
+        DEBUG('e', "Process [%d] Read: failed. Invalid size argument", pid);
     }
 
     // 1. Get Open File Descriptor
     OFD *ofd = currentThread->space->pcb->GetOFD((int) id);
     if (ofd == NULL)
     {
-        DEBUG('e', "Process %d Read: failed. File ID %d is invalid",
+        DEBUG('e', "Process [%d] Read: failed. File ID [%d] is invalid",
                 pid, id);
         return -1;
     }
@@ -438,14 +442,14 @@ int doWrite(int virtAddr, int nBytes, OpenFileId id) {
 
     if(nBytes < 0)
     {
-        DEBUG('e', "Process %d Read: failed. Invalid size argument", pid);
+        DEBUG('e', "Process [%d] Read: failed. Invalid size argument", pid);
     }
 
     // 1. Get Open File Descriptor
     OFD *ofd = currentThread->space->pcb->GetOFD((int) id);
     if (ofd == NULL)
     {
-        DEBUG('e', "Process %d Read: failed. File ID %d is invalid",
+        DEBUG('e', "Process [%d] Read: failed. File ID [%d] is invalid",
                 pid, id);
         return -1;
     }
