@@ -34,7 +34,9 @@ OFD::OFD(int id)
 OFD::OFD(const char *fileName, int id)
 {
     ofdID = id;
-    name = fileName;
+    char* newName = new char[strlen(fileName) + 1];
+    strcpy(newName, fileName);
+	name = newName;
     fileVNode = vnm->AssignVNode(fileName);
     refCount = 1;  // one FD points to this OFD at creation
     fileOffSet = 0;
@@ -158,7 +160,9 @@ int OFD::Write(unsigned int virtAddr, unsigned int nBytes)
 //------------------------------------------------------------------------
 ConsoleOFD::ConsoleOFD(const char *fileName, int id) : OFD(id)
 {
-    name = fileName;
+    char* newName = new char[strlen(fileName) + 1];
+    strcpy(newName, fileName);
+	name = newName;
     fileVNode = vnm->GetConsoleVNode();
 
     char lockName[100];

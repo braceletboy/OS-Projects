@@ -26,7 +26,9 @@ VNode::VNode()
 //------------------------------------------------------------------------
 VNode::VNode(const char *fileName)
 {
-	name = fileName;
+    char* newName = new char[strlen(fileName) + 1];
+    strcpy(newName, fileName);
+	name = newName;
 	refCount = 1;  // at vnode creation, file is actively being used
 	fileObj = fileSystem->Open(fileName);
 
