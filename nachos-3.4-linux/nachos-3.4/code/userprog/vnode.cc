@@ -105,7 +105,7 @@ int VNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 	// read file synchronously byte by byte
 	syncLock->Acquire();
 	int totalBytes = 0;
-	for(int idx = 0; idx <= nBytes; virtAddr++, idx++, offset++)
+	for(unsigned int idx = 0; idx <= nBytes; virtAddr++, idx++, offset++)
     {
         unsigned int physAddr = currentThread->space->Translate(virtAddr);
 		int bytesRead = fileObj->ReadAt(
@@ -158,7 +158,7 @@ int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 	// write to file synchronously byte by byte
 	syncLock->Acquire();
 	int totalBytes = 0;
-	for(int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
+	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
 	{
 		unsigned int physAddr = currentThread->space->Translate(virtAddr);
 		int bytesWritten = fileObj->WriteAt(
