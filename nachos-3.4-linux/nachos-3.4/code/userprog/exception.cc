@@ -356,7 +356,8 @@ char* readString(int virtualAddr) {
 void doCreate(char* fileName) {
     printf("Syscall Call: [%d] invoked Create.\n",
             currentThread->space->pcb->GetPID());
-    char *path = strcat((char *) "../test/", fileName);
+    char path[256] = "../test/";
+    strcat((char *) path, fileName);
     fileSystem->Create(path, 0);
 }
 
@@ -372,7 +373,8 @@ void doCreate(char* fileName) {
 OpenFileId doOpen(char* fileName) {
     printf("Syscall Call: [%d] invoked Open.\n",
             currentThread->space->pcb->GetPID());
-    char *path = strcat((char *) "../test/", fileName);
+    char path[256] = "../test/";
+    strcat((char *) path, fileName);
     int fid = currentThread->space->pcb->AllocateFD(path);
     return (OpenFileId) fid;
 }
