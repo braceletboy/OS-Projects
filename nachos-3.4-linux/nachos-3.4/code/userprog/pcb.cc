@@ -24,7 +24,9 @@ PCB::PCB(int id)
     // file ids (file descriptors) 1 & 2 are always allocated to
     // STDIN and STDOUT respectively
     ofds[0] = oft->AllocateOFD("STDIN", true);
+    bitmap->Mark(0);
     ofds[1] = oft->AllocateOFD("STDOUT", true);
+    bitmap->Mark(1);
 
     for(int i = 2; i < MAX_PROC_OFDS; i++)
     {
