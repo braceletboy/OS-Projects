@@ -18,7 +18,7 @@ class OpenFileTable
         OpenFileTable(int maxOFDs);
         ~OpenFileTable();
 
-        OFD *AllocateOFD(char *fileName, bool consoleOFD = false);
+        OFD *AllocateOFD(const char *fileName, bool consoleOFD = false);
         void DeallocateOFD(OFD *ofd);
 
     private:

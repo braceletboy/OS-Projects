@@ -13,12 +13,12 @@ class VNode
 {
     public:
         VNode();
-        VNode(char *fileName);
-        ~VNode();
+        VNode(const char *fileName);
+        virtual ~VNode();
 
         void IncreaseRef();
         void DecreaseRef();
-        char *GetFileName();
+        const char *GetFileName();
         bool IsActive();
 
         virtual int ReadAt(unsigned int virtAddr, unsigned int nBytes,
@@ -31,7 +31,7 @@ class VNode
         int refCount;  // the number of open connections to the file
 
     protected:
-        char *name;  // name of the file corresponding to the VNode Object
+        const char *name;  // name of the file corresponding to the VNode Object
         Lock *syncLock;  // lock for synchronized access - two connections
         // sharing an VNode should access it synchronously
 };

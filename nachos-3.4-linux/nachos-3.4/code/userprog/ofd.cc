@@ -31,7 +31,7 @@ OFD::OFD(int id)
 //  "fileName" is the name of the file associated.
 //  "id" is the index of the OFD in the Open File Table.
 //------------------------------------------------------------------------
-OFD::OFD(char *fileName, int id)
+OFD::OFD(const char *fileName, int id)
 {
     ofdID = id;
     name = fileName;
@@ -147,7 +147,7 @@ int OFD::Write(unsigned int virtAddr, unsigned int nBytes)
 //
 //  "id" is the index of the OFD in the Open File Table.
 //------------------------------------------------------------------------
-ConsoleOFD::ConsoleOFD(char *fileName, int id) : OFD(id)
+ConsoleOFD::ConsoleOFD(const char *fileName, int id) : OFD(id)
 {
     name = fileName;
     fileVNode = vnm->GetConsoleVNode();

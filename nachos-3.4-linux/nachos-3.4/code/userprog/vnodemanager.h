@@ -26,7 +26,7 @@ class VNodeManager
         VNodeManager();
         ~VNodeManager();
 
-        VNode *AssignVNode(char *fileName);
+        VNode *AssignVNode(const char *fileName);
         void RelieveVNode(VNode *vnode);
         ConsoleVNode *GetConsoleVNode();
 

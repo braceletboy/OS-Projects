@@ -24,7 +24,7 @@ VNode::VNode()
 //
 //  "fileName" is the name of the file corresponding to the VNode.
 //------------------------------------------------------------------------
-VNode::VNode(char *fileName)
+VNode::VNode(const char *fileName)
 {
 	name = fileName;
 	refCount = 1;  // at vnode creation, file is actively being used
@@ -72,7 +72,7 @@ void VNode::DecreaseRef()
 // VNode::GetFileName
 //  Return the name of the file corresponding to the vnode.
 //------------------------------------------------------------------------
-char *VNode::GetFileName()
+const char *VNode::GetFileName()
 {
 	return name;
 }

@@ -11,7 +11,7 @@ VNodeManager::VNodeManager()
 	vnmLock = new Lock("vnode manager lock");
 
     // initialize the vnode for the console
-    ConsoleVNode *console = new ConsoleVNode();
+    console = new ConsoleVNode();
 }
 
 //------------------------------------------------------------------------
@@ -32,7 +32,7 @@ VNodeManager::~VNodeManager()
 //
 //  Returns a pointer the associated VNode.
 //------------------------------------------------------------------------
-VNode *VNodeManager::AssignVNode(char *fileName)
+VNode *VNodeManager::AssignVNode(const char *fileName)
 {
 	vnmLock->Acquire();
 

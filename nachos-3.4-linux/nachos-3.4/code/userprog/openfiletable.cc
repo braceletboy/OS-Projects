@@ -43,7 +43,7 @@ OpenFileTable::~OpenFileTable()
 //
 //  Returns a pointer to the allocated OFD.
 //------------------------------------------------------------------------
-OFD *OpenFileTable::AllocateOFD(char *fileName, bool consoleOFD)
+OFD *OpenFileTable::AllocateOFD(const char *fileName, bool consoleOFD)
 {
     oftLock->Acquire();
 

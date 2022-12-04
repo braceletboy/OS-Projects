@@ -27,8 +27,8 @@ class OFD
 {
     public:
         OFD(int id);
-        OFD(char *fileName, int id);
-        ~OFD();
+        OFD(const char *fileName, int id);
+        virtual ~OFD();
 
         int GetID();
         void IncreaseRef();
@@ -44,7 +44,7 @@ class OFD
         unsigned int fileOffSet;  // the file offset in bytes
 
     protected:
-        char *name;  // name of the file
+        const char *name;  // name of the file
         VNode *fileVNode;  // Associated VNode
         Lock *syncLock;  // lock for synchronized access - two processes
         // sharing an OFD should access it synchronously
@@ -53,7 +53,7 @@ class OFD
 class ConsoleOFD : public OFD
 {
     public:
-        ConsoleOFD(char *fileName, int id);
+        ConsoleOFD(const char *fileName, int id);
 
         virtual int Read(unsigned int virtAddr, unsigned int nBytes);
         virtual int Write(unsigned int virtAddr, unsigned int nBytes);
