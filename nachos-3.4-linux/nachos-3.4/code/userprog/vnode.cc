@@ -214,7 +214,7 @@ int ConsoleVNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 {
 	syncLock->P();
 	int totalBytes = 0;
-	for(unsigned int idx = 0; idx <= nBytes; virtAddr++, idx++, offset++)
+	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
     {
         unsigned int physAddr = currentThread->space->Translate(virtAddr);
 		int bytesRead = read(STDIN_FILENO, &machine->mainMemory[physAddr], 1);
@@ -251,8 +251,7 @@ int ConsoleVNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 	{
 		unsigned int physAddr = currentThread->space->Translate(virtAddr);
 		int bytesWritten = write(
-			STDOUT_FILENO, &machine->mainMemory[physAddr], 1)
-		;
+			STDOUT_FILENO, &machine->mainMemory[physAddr], 1);
 
 		if (bytesWritten == 1) totalBytes++;  // write successful
 		else
