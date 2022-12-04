@@ -7,6 +7,22 @@
 
 //------------------------------------------------------------------------
 // OFD::OFD
+//  Constructor
+//
+//  "id" is the index of the OFD in the Open File Table.
+//------------------------------------------------------------------------
+OFD::OFD(int id)
+{
+    ofdID = id;
+    name = NULL;
+    fileVNode = NULL;
+    refCount = 1;
+    fileOffSet = 0;
+    syncLock = NULL;
+}
+
+//------------------------------------------------------------------------
+// OFD::OFD
 //  Constructor.
 //
 //  An OFD doesn't own a file. It's only an abstraction of the connection
@@ -120,6 +136,62 @@ int OFD::Write(unsigned int virtAddr, unsigned int nBytes)
 
     int bytesWritten = fileVNode->WriteAt(virtAddr, nBytes, fileOffSet);
     if(bytesWritten != -1) fileOffSet += bytesWritten;  // write successful
+
+    syncLock->Release();
+    return bytesWritten;
+}
+
+//------------------------------------------------------------------------
+// ConsoleOFD::ConsoleOFD
+//  Constructor
+//
+//  "id" is the index of the OFD in the Open File Table.
+//------------------------------------------------------------------------
+ConsoleOFD::ConsoleOFD(char *fileName, int id) : OFD(id)
+{
+    name = fileName;
+    fileVNode = vnm->GetConsoleVNode();
+
+    char lockName[100];
+    snprintf(lockName, sizeof(lockName), "ofd-%d sync lock", id);
+    syncLock = new Lock(lockName);
+}
+
+//------------------------------------------------------------------------
+// ConsoleOFD::Read
+//  Read from the console into the given buffer.
+//
+//  "virtAddr" is the virtual address of the start of the buffer
+//  "nBytes" is the number of bytes to read
+//
+//  Returns the number of bytes read if successful else -1
+//------------------------------------------------------------------------
+int ConsoleOFD::Read(unsigned int virtAddr, unsigned int nBytes)
+{
+    // the reading and updating of file offset need to happen atomically
+    syncLock->Acquire();
+
+    int bytesRead = fileVNode->ReadAt(virtAddr, nBytes, 0);
+
+    syncLock->Release();
+    return bytesRead;
+}
+
+//------------------------------------------------------------------------
+// ConsoleOFD::Write
+//  Write from the give buffer into the console.
+//
+//  "virtAddr" is the virtual address of the start of the buffer
+//  "nBytes" is the number of bytes to write
+//
+//  Returns the number of bytes written if successful else -1
+//------------------------------------------------------------------------
+int ConsoleOFD::Write(unsigned int virtAddr, unsigned int nBytes)
+{
+    // the writing and updating of file offset need to happen atomically
+    syncLock->Acquire();
+
+    int bytesWritten = fileVNode->WriteAt(virtAddr, nBytes, 0);
 
     syncLock->Release();
     return bytesWritten;
