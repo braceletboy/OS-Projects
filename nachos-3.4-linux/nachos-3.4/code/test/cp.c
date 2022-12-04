@@ -27,8 +27,9 @@ int main() {
 	    Write(buf, count, dst);
 	}
 
-	Write("cp: file in.dat is copied to file ", 34, ConsoleOutput);
-	Write(out, i, ConsoleOutput);
+	Write("cp: file in.dat is copied to file\n", 34, ConsoleOutput);
+	out[i] = '\n';
+	Write(out, i+1, ConsoleOutput);
 	Write("\n", 2, ConsoleOutput);
 	Close(src);
 	Close(dst);
