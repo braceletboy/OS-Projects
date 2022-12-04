@@ -220,15 +220,13 @@ int ConsoleVNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 		int bytesRead = read(STDIN_FILENO, &machine->mainMemory[physAddr], 1);
 
 		if(bytesRead == 1) totalBytes++;
-
-		else if (bytesRead == 0) break;  // file end reached
-
 		else
 		{
 			// byte read failed
 			syncLock->V();
 			return -1;
 		}
+        if(machine->mainMemory[physAddr] == '\n') break;  // end of line
     }
 	syncLock->V();
 	return totalBytes;
