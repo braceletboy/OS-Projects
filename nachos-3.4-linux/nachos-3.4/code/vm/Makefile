@@ -583,7 +583,11 @@ vnode.o: ../userprog/vnode.cc /usr/include/stdc-predef.h \
  ../userprog/ofd.h ../threads/scheduler.h ../machine/interrupt.h \
  ../machine/stats.h ../machine/timer.h ../userprog/memorymanager.h \
  ../userprog/pcbmanager.h ../userprog/vnodemanager.h \
- ../userprog/openfiletable.h
+ ../userprog/openfiletable.h /usr/include/unistd.h \
+ /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
+ /usr/include/bits/confname.h /usr/include/bits/getopt_posix.h \
+ /usr/include/bits/getopt_core.h /usr/include/bits/unistd_ext.h \
+ /usr/include/linux/close_range.h
 openfiletable.o: ../userprog/openfiletable.cc /usr/include/stdc-predef.h \
  ../userprog/openfiletable.h ../userprog/bitmap.h ../threads/copyright.h \
  ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
