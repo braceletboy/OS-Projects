@@ -348,11 +348,12 @@ char* readString(int virtualAddr) {
 
 //----------------------------------------------------------------------
 // doCreate
-//  Helper function for the close system call
+//  Helper function for the create system call.
+//
+//  "fileName" is the file we want to create.
 //----------------------------------------------------------------------
 
-void doCreate(char* fileName)
-{
+void doCreate(char* fileName) {
     printf("Syscall Call: [%d] invoked Create.\n",
             currentThread->space->pcb->GetPID());
     char *path = strcat((char *) "../test/", fileName);
@@ -361,15 +362,14 @@ void doCreate(char* fileName)
 
 //----------------------------------------------------------------------
 // doOpen
-//  Helper function for the close system call
+//  Helper function for the open system call.
 //
-//  "fileName" is the filename to open
+//  "fileName" is the filename to open.
 //
 //  Return the file id of the opened file if successful else -1
 //----------------------------------------------------------------------
 
-OpenFileId doOpen(char* fileName)
-{
+OpenFileId doOpen(char* fileName) {
     printf("Syscall Call: [%d] invoked Open.\n",
             currentThread->space->pcb->GetPID());
     char *path = strcat((char *) "../test/", fileName);
@@ -379,33 +379,89 @@ OpenFileId doOpen(char* fileName)
 
 //----------------------------------------------------------------------
 // doRead
-//  Helper function for the close system call
+//  Helper function for the read system call
+//
+//  "virtAddr" is the virtual address to start reading into
+//  "nBytes" is the number of bytes to read
+//  "id" is the id (file descriptor) of the file we want to read
+//
+//  Returns the number of bytes read if successful else -1
+//
+//  The number of bytes read can be smaller than nBytes when reading
+//  at the end of the file
 //----------------------------------------------------------------------
 
-void doRead(char *buffer, int size, OpenFileId id)
-{
-    printf("Syscall Call: [%d] invoked Read.\n",
-            currentThread->space->pcb->GetPID());
+int doRead(int virtAddr, int nBytes, OpenFileId id) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("Syscall Call: [%d] invoked Read.\n", pid);
+
+    ASSERT(virtAddr > 0);
+
+    if(nBytes < 0)
+    {
+        DEBUG('e', "Process %d Read: failed. Invalid size argument", pid);
+    }
+
+    // 1. Get Open File Descriptor
+    OFD *ofd = currentThread->space->pcb->GetOFD((int) id);
+    if (ofd == NULL)
+    {
+        DEBUG('e', "Process %d Read: failed. File ID %d is invalid",
+                pid, id);
+        return -1;
+    }
+
+    // 2. Read from file
+    int readBytes = ofd->Read(virtAddr, nBytes);
+
+    return readBytes;
 }
 
 //----------------------------------------------------------------------------------------------------------------
 // doWrite
-//  Helper function for the close system call
+//  Helper function for the write system call
+//
+//  "virtAddr" is the virtual address to start writing from
+//  "nBytes" is the number of bytes to write
+//  "id" is the id (file descriptor) of the file we want to write to
+//
+//  Returns the number of bytes written if successful else -1
 //----------------------------------------------------------------------
 
-void doWrite(char *buffer, int size, OpenFileId id)
-{
-    printf("Syscall Call: [%d] invoked Write.\n",
-            currentThread->space->pcb->GetPID());
+int doWrite(int virtAddr, int nBytes, OpenFileId id) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("Syscall Call: [%d] invoked Write.\n", pid);
+
+    ASSERT(virtAddr > 0);
+
+    if(nBytes < 0)
+    {
+        DEBUG('e', "Process %d Read: failed. Invalid size argument", pid);
+    }
+
+    // 1. Get Open File Descriptor
+    OFD *ofd = currentThread->space->pcb->GetOFD((int) id);
+    if (ofd == NULL)
+    {
+        DEBUG('e', "Process %d Read: failed. File ID %d is invalid",
+                pid, id);
+        return -1;
+    }
+
+    // 3. Write to file
+    int writeBytes = ofd->Write(virtAddr, nBytes);
+
+    return writeBytes;
 }
 
 //----------------------------------------------------------------------
 // doClose
 //  Helper function for the close system call
+//
+//  "id" is the ID of the file we want to close
 //----------------------------------------------------------------------
 
-void doClose(OpenFileId id)
-{
+void doClose(OpenFileId id) {
     printf("Syscall Call: [%d] invoked Close.\n",
             currentThread->space->pcb->GetPID());
     currentThread->space->pcb->DeallocateFD((int) id);
@@ -478,9 +534,19 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(2, fid);
         incrementPC();
     } else if((which == SyscallException) && (type == SC_Write)) {
-        ;
+        int bufferVirtAddr = machine->ReadRegister(4);
+        int nBytes = machine->ReadRegister(5);
+        OpenFileId fid = machine->ReadRegister(6);
+        int writeBytes = doWrite(bufferVirtAddr, nBytes, fid);
+        machine->WriteRegister(2, writeBytes);
+        incrementPC();
     } else if((which == SyscallException) && (type == SC_Read)) {
-        ;
+        int bufferVirtAddr = machine->ReadRegister(4);
+        int nBytes = machine->ReadRegister(5);
+        OpenFileId fid = machine->ReadRegister(6);
+        int readBytes = doRead(bufferVirtAddr, nBytes, fid);
+        machine->WriteRegister(2, readBytes);
+        incrementPC();
     } else if((which == SyscallException) && (type == SC_Close)) {
         OpenFileId fid = machine->ReadRegister(4);
         doClose(fid);
