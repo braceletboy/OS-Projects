@@ -87,15 +87,19 @@ bool OFD::IsActive()
 // OFD::Read
 //  Read from the file into the given buffer.
 //
-//  "into" is the buffer
+//  "virtAddr" is the virtual address of the start of the buffer
 //  "nBytes" is the number of bytes to read
+//
+//  Returns the number of bytes read if successful else -1
 //------------------------------------------------------------------------
-int OFD::Read(char *into, int nBytes)
+int OFD::Read(unsigned int virtAddr, unsigned int nBytes)
 {
     // the reading and updating of file offset need to happen atomically
     syncLock->Acquire();
-    int bytesRead = fileVNode->ReadAt(into, nBytes, fileOffSet);
-    fileOffSet += bytesRead;
+
+    int bytesRead = fileVNode->ReadAt(virtAddr, nBytes, fileOffSet);
+    if(bytesRead != -1) fileOffSet += bytesRead;  // read successful
+
     syncLock->Release();
     return bytesRead;
 }
@@ -104,15 +108,19 @@ int OFD::Read(char *into, int nBytes)
 // OFD::Write
 //  Write from the give buffer into the file.
 //
-//  "from" is the buffer
-//  "nBytes" is the number of bytes to read
+//  "virtAddr" is the virtual address of the start of the buffer
+//  "nBytes" is the number of bytes to write
+//
+//  Returns the number of bytes written if successful else -1
 //------------------------------------------------------------------------
-int OFD::Write(char *from, int nBytes)
+int OFD::Write(unsigned int virtAddr, unsigned int nBytes)
 {
     // the writing and updating of file offset need to happen atomically
     syncLock->Acquire();
-    int bytesWritten = fileVNode->WriteAt(from, nBytes, fileOffSet);
-    fileOffSet += bytesWritten;
+
+    int bytesWritten = fileVNode->WriteAt(virtAddr, nBytes, fileOffSet);
+    if(bytesWritten != -1) fileOffSet += bytesWritten;  // write successful
+
     syncLock->Release();
     return bytesWritten;
 }

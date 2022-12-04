@@ -34,15 +34,15 @@ class OFD
         void DecreaseRef();
         bool IsActive();
 
-        int Read(char *into, int nBytes);
-        int Write(char *from, int nBytes);
+        int Read(unsigned int virtAddr, unsigned int nBytes);
+        int Write(unsigned int virtAddr, unsigned int nBytes);
 
     private:
         int ofdID;  // index of the OFD in the (Global) Open File Table
         char *name;  // name of the file
         VNode *fileVNode;  // Associated VNode
         int refCount;  // the number of file descriptors pointing to the OFD
-        int fileOffSet;  // the file offset in bytes
+        unsigned int fileOffSet;  // the file offset in bytes
         Lock *syncLock;  // lock for synchronized access - two processes
         // sharing an OFD should access it synchronously
 };
