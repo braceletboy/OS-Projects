@@ -28,10 +28,12 @@ class VNodeManager
 
         VNode *AssignVNode(char *fileName);
         void RelieveVNode(VNode *vnode);
+        ConsoleVNode *GetConsoleVNode();
 
     public:
-        List *vnodes;
+        List *vnodes;  // file vnodes
         Lock *vnmLock;
+        ConsoleVNode *console;  // vnode for the console
 };
 
 #endif  // VNM_H

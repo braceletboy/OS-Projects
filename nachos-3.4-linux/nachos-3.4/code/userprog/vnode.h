@@ -12,6 +12,7 @@
 class VNode
 {
     public:
+        VNode();
         VNode(char *fileName);
         ~VNode();
 
@@ -20,17 +21,30 @@ class VNode
         char *GetFileName();
         bool IsActive();
 
-        int ReadAt(unsigned int virtAddr, unsigned int nBytes,
+        virtual int ReadAt(unsigned int virtAddr, unsigned int nBytes,
                     unsigned int offset);
-        int WriteAt(unsigned int virtAddr, unsigned int nBytes,
+        virtual int WriteAt(unsigned int virtAddr, unsigned int nBytes,
                     unsigned int offset);
 
     private:
-        char *name;  // name of the file corresponding to the VNode Object
         OpenFile *fileObj;
         int refCount;  // the number of open connections to the file
+
+    protected:
+        char *name;  // name of the file corresponding to the VNode Object
         Lock *syncLock;  // lock for synchronized access - two connections
         // sharing an VNode should access it synchronously
+};
+
+class ConsoleVNode: public VNode
+{
+    public:
+        ConsoleVNode();
+
+        virtual int ReadAt(unsigned int virtAddr, unsigned int nBytes,
+                    unsigned int offset);
+        virtual int WriteAt(unsigned int virtAddr, unsigned int nBytes,
+                    unsigned int offset);
 };
 
 #endif  // VNODE_H

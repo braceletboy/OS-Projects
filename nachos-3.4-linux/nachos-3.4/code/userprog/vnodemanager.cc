@@ -9,6 +9,9 @@ VNodeManager::VNodeManager()
 {
 	vnodes = new List();
 	vnmLock = new Lock("vnode manager lock");
+
+    // initialize the vnode for the console
+    ConsoleVNode *console = new ConsoleVNode();
 }
 
 //------------------------------------------------------------------------
@@ -94,4 +97,9 @@ void VNodeManager::RelieveVNode(VNode* vnode)
     if(!vnode->IsActive()) vnodes->RemoveItem((void *) vnode);
 
     vnmLock->Release();
+}
+
+ConsoleVNode *VNodeManager::GetConsoleVNode()
+{
+    return console;
 }

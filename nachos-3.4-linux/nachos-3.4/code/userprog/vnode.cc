@@ -4,6 +4,19 @@
 
 #include "vnode.h"
 #include "system.h"
+#include "unistd.h"
+
+//------------------------------------------------------------------------
+// VNode::VNode
+//  Default Constructor.
+//------------------------------------------------------------------------
+VNode::VNode()
+{
+	name = NULL;
+	refCount = 1;
+	fileObj = NULL;
+	syncLock = NULL;
+}
 
 //------------------------------------------------------------------------
 // VNode::VNode
@@ -163,6 +176,85 @@ int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 		unsigned int physAddr = currentThread->space->Translate(virtAddr);
 		int bytesWritten = fileObj->WriteAt(
 			&machine->mainMemory[physAddr], 1, offset);
+
+		if (bytesWritten == 1) totalBytes++;  // write successful
+		else
+		{
+			// write failed
+			syncLock->Release();
+			return -1;
+		}
+	}
+	syncLock->Release();
+	return totalBytes;
+}
+
+//------------------------------------------------------------------------
+// ConsoleVNode::ConsoleVNode
+//  Default Constructor.
+//------------------------------------------------------------------------
+ConsoleVNode::ConsoleVNode() : VNode()
+{
+	name = (char *) "Console";
+	syncLock = new Lock("vnode lock: Console");
+}
+
+//------------------------------------------------------------------------
+// ConsoleVNode::ReadAt
+//  Read from console into a buffer.
+//
+//  "virtAddr" is the starting virtual address of the buffer.
+//  "nBytes" is the number of bytes to write.
+//  "offset" (unused)
+//
+//  Returns the bytes read if successful else -1
+//------------------------------------------------------------------------
+int ConsoleVNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
+							unsigned int offset)
+{
+	syncLock->Acquire();
+	int totalBytes = 0;
+	for(unsigned int idx = 0; idx <= nBytes; virtAddr++, idx++, offset++)
+    {
+        unsigned int physAddr = currentThread->space->Translate(virtAddr);
+		int bytesRead = read(STDIN_FILENO, &machine->mainMemory[physAddr], 1);
+
+		if(bytesRead == 1) totalBytes++;
+
+		else if (bytesRead == 0) break;  // file end reached
+
+		else
+		{
+			// byte read failed
+			syncLock->Release();
+			return -1;
+		}
+    }
+	syncLock->Release();
+	return totalBytes;
+}
+
+//------------------------------------------------------------------------
+// ConsoleVNode::WriteAt
+//  Write to console from a buffer.
+//
+//  "virtAddr" is the starting virtual address of the buffer.
+//  "nBytes" is the number of bytes to write.
+//  "offset" (unused)
+//
+//  Returns the bytes written if successful else -1
+//------------------------------------------------------------------------
+int ConsoleVNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
+							unsigned int offset)
+{
+	syncLock->Acquire();
+	int totalBytes = 0;
+	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
+	{
+		unsigned int physAddr = currentThread->space->Translate(virtAddr);
+		int bytesWritten = write(
+			STDOUT_FILENO, &machine->mainMemory[physAddr], 1)
+		;
 
 		if (bytesWritten == 1) totalBytes++;  // write successful
 		else
