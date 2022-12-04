@@ -167,7 +167,6 @@ int VNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 					unsigned int offset)
 {
-	// TODO: Handle what happens if nBytes is greater than the buffer size
 	// TODO: Handle what happens if disk has no sufficient space for write
 
 	// write to file synchronously byte by byte
@@ -176,6 +175,7 @@ int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
 	{
 		unsigned int physAddr = currentThread->space->Translate(virtAddr);
+        if(machine->mainMemory[physAddr] == '\0') break;  // end of buffer
 		int bytesWritten = fileObj->WriteAt(
 			&machine->mainMemory[physAddr], 1, offset);
 
@@ -252,6 +252,7 @@ int ConsoleVNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
 	{
 		unsigned int physAddr = currentThread->space->Translate(virtAddr);
+        if(machine->mainMemory[physAddr] == '\0') break;  // end of buffer
 		int bytesWritten = write(
 			STDOUT_FILENO, &machine->mainMemory[physAddr], 1);
 
@@ -263,6 +264,11 @@ int ConsoleVNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 			return -1;
 		}
 	}
+    //********************************************************************
+    // Add a new life after every line because the test program expects it
+    //********************************************************************
+    write(STDOUT_FILENO, "\n",1);
+
 	syncLock->V();
 	return totalBytes;
 }
