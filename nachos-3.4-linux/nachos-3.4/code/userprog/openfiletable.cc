@@ -39,17 +39,21 @@ OpenFileTable::~OpenFileTable()
 //  Allocate an open file descriptor to the invoking process.
 //
 //  "fileName" The file that the process wants to open.
+//  "consoleOFD" if we want to allocate a console ofd or not.
 //
 //  Returns a pointer to the allocated OFD.
 //------------------------------------------------------------------------
-OFD *OpenFileTable::AllocateOFD(char *fileName)
+OFD *OpenFileTable::AllocateOFD(char *fileName, bool consoleOFD)
 {
     oftLock->Acquire();
 
     int id = bitmap->Find();
     if (id != -1)
     {
-        entries[id] = new OFD(fileName, id);
+        if(consoleOFD) entries[id] = new ConsoleOFD(fileName, id);
+
+        else entries[id] = new OFD(fileName, id);
+
         oftLock->Release();
         return entries[id];
     }

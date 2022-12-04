@@ -21,7 +21,12 @@ PCB::PCB(int id)
     bitmap = new BitMap(MAX_PROC_OFDS);
     ofds = new OFD*[MAX_PROC_OFDS];
 
-    for(int i = 0; i < MAX_PROC_OFDS; i++)
+    // file ids (file descriptors) 1 & 2 are always allocated to
+    // STDIN and STDOUT respectively
+    ofds[0] = oft->AllocateOFD("STDIN", true);
+    ofds[1] = oft->AllocateOFD("STDOUT", true);
+
+    for(int i = 2; i < MAX_PROC_OFDS; i++)
     {
         ofds[i] = NULL;
     }
