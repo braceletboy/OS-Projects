@@ -13,9 +13,9 @@ all:
 	cd vm; $(MAKE) depend
 	cd vm; $(MAKE) nachos 
 	cd filesys; $(MAKE) depend
-	cd filesys; $(MAKE) nachos 
-	cd network; $(MAKE) depend
-	cd network; $(MAKE) nachos 
+	cd filesys; $(MAKE) nachos
+# cd network; $(MAKE) depend (uncomment to compile network folder)
+# cd network; $(MAKE) nachos (uncomment to compile network folder)
 	cd bin; make all
 	cd test; make all
 
