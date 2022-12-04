@@ -20,8 +20,10 @@ class VNode
         char *GetFileName();
         bool IsActive();
 
-        int ReadAt(char *into, int nBytes, int offset);
-        int WriteAt(char *from, int nBytes, int offset);
+        int ReadAt(unsigned int virtAddr, unsigned int nBytes,
+                    unsigned int offset);
+        int WriteAt(unsigned int virtAddr, unsigned int nBytes,
+                    unsigned int offset);
 
     private:
         char *name;  // name of the file corresponding to the VNode Object
