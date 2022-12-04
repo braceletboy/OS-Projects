@@ -18,7 +18,6 @@
 #define SYNCH_H
 
 #include "copyright.h"
-#include "thread.h"
 #include "list.h"
 
 // The following class defines a "semaphore" whose value is a non-negative
@@ -61,7 +60,7 @@ class Semaphore {
 //
 // In addition, by convention, only the thread that acquired the lock
 // may release it.  As with semaphores, you can't read the lock value
-// (because the value might change immediately after you read it).  
+// (because the value might change immediately after you read it).
 
 class Lock {
   public:
@@ -86,7 +85,11 @@ class Lock {
 #if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
     defined(USER_PROGRAM) || defined(FILESYS)
     const char* name;  // for debugging
+#ifdef USER_PROGRAM
+    int acquiredPID;  // pid of the thread that acquired the lock
+#else
     Thread *acquiredThread;  // thread that acquired the lock
+#endif
     List *queue;      // threads waiting to acquire the lock
 #else
     char* name;				// for debugging
