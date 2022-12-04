@@ -46,7 +46,7 @@ class OFD
     protected:
         const char *name;  // name of the file
         VNode *fileVNode;  // Associated VNode
-        Lock *syncLock;  // lock for synchronized access - two processes
+        Semaphore *syncLock;  // lock for synchronized access - two processes
         // sharing an OFD should access it synchronously
 };
 

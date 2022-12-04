@@ -32,8 +32,8 @@ class VNode
 
     protected:
         const char *name;  // name of the file corresponding to the VNode Object
-        Lock *syncLock;  // lock for synchronized access - two connections
-        // sharing an VNode should access it synchronously
+        Semaphore *syncLock;  // lock for synchronized access - two
+        // connections sharing an VNode should access it synchronously
 };
 
 class ConsoleVNode: public VNode

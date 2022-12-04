@@ -32,7 +32,7 @@ class VNodeManager
 
     public:
         List *vnodes;  // file vnodes
-        Lock *vnmLock;
+        Semaphore *vnmLock;
         ConsoleVNode *console;  // vnode for the console
 };
 

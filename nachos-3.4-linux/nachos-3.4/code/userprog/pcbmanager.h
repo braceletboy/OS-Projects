@@ -18,7 +18,7 @@ class PCBManager {
     private:
         BitMap* bitmap;
         PCB** pcbs;
-        Lock* pcbManagerLock;
+        Semaphore* pcbManagerLock;
 
 };
 

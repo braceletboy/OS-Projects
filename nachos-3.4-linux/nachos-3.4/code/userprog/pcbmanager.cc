@@ -20,7 +20,7 @@ PCBManager::PCBManager(int maxProcesses)
     {
         pcbs[i] = NULL;
     }
-    pcbManagerLock = new Lock("pcb manager lock");
+    pcbManagerLock = new Semaphore("pcb manager lock", 1);
 }
 
 //--------------------------------------------------------------------
@@ -46,19 +46,19 @@ PCBManager::~PCBManager()
 PCB *PCBManager::AllocatePCB()
 {
     // assign a pcb to the process in a synchronized manner
-    pcbManagerLock->Acquire();
+    pcbManagerLock->P();
 
     int pid = bitmap->Find();
     if(pid != -1)
     {
         pcbs[pid] = new PCB(pid);
-        pcbManagerLock->Release();
+        pcbManagerLock->V();
         return pcbs[pid];
     }
     else
     {
         // max pcb limit reached
-        pcbManagerLock->Release();
+        pcbManagerLock->V();
         return NULL;
     }
 }
@@ -79,14 +79,14 @@ void PCBManager::DeallocatePCB(PCB *pcb)
     if (pcb == NULL) return;
 
     // remove the pcb in a synchronized manner
-    pcbManagerLock->Acquire();
+    pcbManagerLock->P();
 
     int process_id = pcb->GetPID();
     bitmap->Clear(process_id);
     pcbs[process_id] = NULL;
     delete pcb;
 
-    pcbManagerLock->Release();
+    pcbManagerLock->V();
 }
 
 //--------------------------------------------------------------------

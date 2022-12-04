@@ -24,7 +24,7 @@ class OpenFileTable
     private:
         BitMap *bitmap;  // bitmap to indicate if an entry is already filled
         OFD **entries;  // the table of entries
-        Lock *oftLock;
+        Semaphore *oftLock;
 };
 
 #endif  // OFT_H

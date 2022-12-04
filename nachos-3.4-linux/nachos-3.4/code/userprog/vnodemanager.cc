@@ -8,7 +8,7 @@
 VNodeManager::VNodeManager()
 {
 	vnodes = new List();
-	vnmLock = new Lock("vnode manager lock");
+	vnmLock = new Semaphore("vnode manager lock", 1);
 
     // initialize the vnode for the console
     console = new ConsoleVNode();
@@ -34,7 +34,7 @@ VNodeManager::~VNodeManager()
 //------------------------------------------------------------------------
 VNode *VNodeManager::AssignVNode(const char *fileName)
 {
-	vnmLock->Acquire();
+	vnmLock->P();
 
     VNode *allocated_vnode;
 
@@ -75,7 +75,7 @@ VNode *VNodeManager::AssignVNode(const char *fileName)
     allocated_vnode = new VNode(fileName);
     vnodes->Append((void *) allocated_vnode);
 
-    vnmLock->Release();
+    vnmLock->V();
 
     return allocated_vnode;
 }
@@ -91,12 +91,12 @@ VNode *VNodeManager::AssignVNode(const char *fileName)
 //------------------------------------------------------------------------
 void VNodeManager::RelieveVNode(VNode* vnode)
 {
-    vnmLock->Acquire();
+    vnmLock->P();
 
     vnode->DecreaseRef();
     if(!vnode->IsActive()) vnodes->RemoveItem((void *) vnode);
 
-    vnmLock->Release();
+    vnmLock->V();
 }
 
 ConsoleVNode *VNodeManager::GetConsoleVNode()

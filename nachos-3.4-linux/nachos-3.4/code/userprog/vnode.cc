@@ -32,7 +32,7 @@ VNode::VNode(const char *fileName)
 
 	char lockName[300];
 	snprintf(lockName, sizeof(lockName), "vnode lock: '%s'", fileName);
-	syncLock = new Lock(lockName);
+	syncLock = new Semaphore(lockName, 1);
 }
 
 //------------------------------------------------------------------------
@@ -51,9 +51,9 @@ VNode::~VNode()
 //------------------------------------------------------------------------
 void VNode::IncreaseRef()
 {
-	syncLock->Acquire();
+	syncLock->P();
 	refCount++;
-	syncLock->Release();
+	syncLock->V();
 }
 
 //------------------------------------------------------------------------
@@ -62,10 +62,10 @@ void VNode::IncreaseRef()
 //------------------------------------------------------------------------
 void VNode::DecreaseRef()
 {
-	syncLock->Acquire();
+	syncLock->P();
 	ASSERT(refCount > 0);
 	refCount--;
-	syncLock->Release();
+	syncLock->V();
 }
 
 //------------------------------------------------------------------------
@@ -116,7 +116,7 @@ int VNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 	// TODO: Handle overflow of the buffer we are reading into
 
 	// read file synchronously byte by byte
-	syncLock->Acquire();
+	syncLock->P();
 	int totalBytes = 0;
 	for(unsigned int idx = 0; idx <= nBytes; virtAddr++, idx++, offset++)
     {
@@ -131,11 +131,11 @@ int VNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 		else
 		{
 			// byte read failed
-			syncLock->Release();
+			syncLock->V();
 			return -1;
 		}
     }
-	syncLock->Release();
+	syncLock->V();
 	return totalBytes;
 }
 
@@ -169,7 +169,7 @@ int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 	// TODO: Handle what happens if disk has no sufficient space for write
 
 	// write to file synchronously byte by byte
-	syncLock->Acquire();
+	syncLock->P();
 	int totalBytes = 0;
 	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
 	{
@@ -181,11 +181,11 @@ int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 		else
 		{
 			// write failed
-			syncLock->Release();
+			syncLock->V();
 			return -1;
 		}
 	}
-	syncLock->Release();
+	syncLock->V();
 	return totalBytes;
 }
 
@@ -196,7 +196,7 @@ int VNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 ConsoleVNode::ConsoleVNode() : VNode()
 {
 	name = (char *) "Console";
-	syncLock = new Lock("vnode lock: Console");
+	syncLock = new Semaphore("vnode lock: Console", 1);
 }
 
 //------------------------------------------------------------------------
@@ -212,7 +212,7 @@ ConsoleVNode::ConsoleVNode() : VNode()
 int ConsoleVNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 							unsigned int offset)
 {
-	syncLock->Acquire();
+	syncLock->P();
 	int totalBytes = 0;
 	for(unsigned int idx = 0; idx <= nBytes; virtAddr++, idx++, offset++)
     {
@@ -226,11 +226,11 @@ int ConsoleVNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 		else
 		{
 			// byte read failed
-			syncLock->Release();
+			syncLock->V();
 			return -1;
 		}
     }
-	syncLock->Release();
+	syncLock->V();
 	return totalBytes;
 }
 
@@ -247,7 +247,7 @@ int ConsoleVNode::ReadAt(unsigned int virtAddr, unsigned int nBytes,
 int ConsoleVNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 							unsigned int offset)
 {
-	syncLock->Acquire();
+	syncLock->P();
 	int totalBytes = 0;
 	for(unsigned int idx = 0; idx < nBytes; virtAddr++, idx++, offset++)
 	{
@@ -260,10 +260,10 @@ int ConsoleVNode::WriteAt(unsigned int virtAddr, unsigned int nBytes,
 		else
 		{
 			// write failed
-			syncLock->Release();
+			syncLock->V();
 			return -1;
 		}
 	}
-	syncLock->Release();
+	syncLock->V();
 	return totalBytes;
 }

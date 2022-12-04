@@ -41,7 +41,7 @@ OFD::OFD(const char *fileName, int id)
 
     char lockName[100];
     snprintf(lockName, sizeof(lockName), "ofd-%d sync lock", id);
-    syncLock = new Lock(lockName);
+    syncLock = new Semaphore(lockName, 1);
 }
 
 //------------------------------------------------------------------------
@@ -71,9 +71,9 @@ int OFD::GetID()
 //------------------------------------------------------------------------
 void OFD::IncreaseRef()
 {
-    syncLock->Acquire();
+    syncLock->P();
     refCount++;
-    syncLock->Release();
+    syncLock->V();
 }
 
 //------------------------------------------------------------------------
@@ -82,10 +82,10 @@ void OFD::IncreaseRef()
 //------------------------------------------------------------------------
 void OFD::DecreaseRef()
 {
-    syncLock->Acquire();
+    syncLock->P();
     ASSERT(refCount > 0);
     refCount--;
-    syncLock->Release();
+    syncLock->V();
 }
 
 //------------------------------------------------------------------------
@@ -111,12 +111,12 @@ bool OFD::IsActive()
 int OFD::Read(unsigned int virtAddr, unsigned int nBytes)
 {
     // the reading and updating of file offset need to happen atomically
-    syncLock->Acquire();
+    syncLock->P();
 
     int bytesRead = fileVNode->ReadAt(virtAddr, nBytes, fileOffSet);
     if(bytesRead != -1) fileOffSet += bytesRead;  // read successful
 
-    syncLock->Release();
+    syncLock->V();
     return bytesRead;
 }
 
@@ -132,12 +132,12 @@ int OFD::Read(unsigned int virtAddr, unsigned int nBytes)
 int OFD::Write(unsigned int virtAddr, unsigned int nBytes)
 {
     // the writing and updating of file offset need to happen atomically
-    syncLock->Acquire();
+    syncLock->P();
 
     int bytesWritten = fileVNode->WriteAt(virtAddr, nBytes, fileOffSet);
     if(bytesWritten != -1) fileOffSet += bytesWritten;  // write successful
 
-    syncLock->Release();
+    syncLock->V();
     return bytesWritten;
 }
 
@@ -154,7 +154,7 @@ ConsoleOFD::ConsoleOFD(const char *fileName, int id) : OFD(id)
 
     char lockName[100];
     snprintf(lockName, sizeof(lockName), "ofd-%d sync lock", id);
-    syncLock = new Lock(lockName);
+    syncLock = new Semaphore(lockName, 1);
 }
 
 //------------------------------------------------------------------------
@@ -169,11 +169,11 @@ ConsoleOFD::ConsoleOFD(const char *fileName, int id) : OFD(id)
 int ConsoleOFD::Read(unsigned int virtAddr, unsigned int nBytes)
 {
     // the reading and updating of file offset need to happen atomically
-    syncLock->Acquire();
+    syncLock->P();
 
     int bytesRead = fileVNode->ReadAt(virtAddr, nBytes, 0);
 
-    syncLock->Release();
+    syncLock->V();
     return bytesRead;
 }
 
@@ -189,10 +189,10 @@ int ConsoleOFD::Read(unsigned int virtAddr, unsigned int nBytes)
 int ConsoleOFD::Write(unsigned int virtAddr, unsigned int nBytes)
 {
     // the writing and updating of file offset need to happen atomically
-    syncLock->Acquire();
+    syncLock->P();
 
     int bytesWritten = fileVNode->WriteAt(virtAddr, nBytes, 0);
 
-    syncLock->Release();
+    syncLock->V();
     return bytesWritten;
 }

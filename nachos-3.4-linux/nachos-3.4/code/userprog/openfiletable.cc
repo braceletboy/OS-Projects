@@ -20,7 +20,7 @@ OpenFileTable::OpenFileTable(int maxOFDs)
     {
         entries[i] = NULL;
     }
-    oftLock = new Lock("open file table lock");
+    oftLock = new Semaphore("open file table lock", 1);
 }
 
 //------------------------------------------------------------------------
@@ -45,7 +45,7 @@ OpenFileTable::~OpenFileTable()
 //------------------------------------------------------------------------
 OFD *OpenFileTable::AllocateOFD(const char *fileName, bool consoleOFD)
 {
-    oftLock->Acquire();
+    oftLock->P();
 
     int id = bitmap->Find();
     if (id != -1)
@@ -54,13 +54,13 @@ OFD *OpenFileTable::AllocateOFD(const char *fileName, bool consoleOFD)
 
         else entries[id] = new OFD(fileName, id);
 
-        oftLock->Release();
+        oftLock->V();
         return entries[id];
     }
     else
     {
         // no free entry in the table
-        oftLock->Release();
+        oftLock->V();
         return NULL;
     }
 }
@@ -78,7 +78,7 @@ void OpenFileTable::DeallocateOFD(OFD *ofd)
 {
     if (ofd == NULL) return;
 
-    oftLock->Acquire();
+    oftLock->P();
 
     ofd->DecreaseRef();
     if(!ofd->IsActive())
@@ -89,5 +89,5 @@ void OpenFileTable::DeallocateOFD(OFD *ofd)
         delete ofd;
     }
 
-    oftLock->Release();
+    oftLock->V();
 }
