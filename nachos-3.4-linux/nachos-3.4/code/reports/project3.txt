@@ -1,0 +1,9 @@
+Group Number: 1
+Contributors: Cong Hoang, Rukmangadh Sai Myana
+
+Both cp and concurrentRead works as expected.
+To run code, run make from code/ directory then go to test/ directory and run code as written in the instruction files on canvas.
+
+Brief explanation of code structure:
+Open/Close creates/deletes entries from the process' open file table which is managed by the PCB class. The functionalities in PCB class pass parameters to the system-wide open file table to handle.
+Read/Write function passes arguments to the OpenFile object to execute.
