@@ -39,6 +39,17 @@ extern Timer *timer;				// the hardware alarm clock
 extern Machine *machine;	// user program memory and registers
 extern MemoryManager *mm;
 extern PCBManager *pcbManager;
+
+// file access data structures
+#include "vnodemanager.h"
+#include "openfiletable.h"
+
+#define MAX_PROC_OFDS 30  // maximum open file descriptors per process
+#define MAX_TOTAL_OFDS MAX_PROCESSES * MAX_PROC_OFDS  // maximum open file
+																									//descriptors in the system
+
+extern VNodeManager *vnm;
+extern OpenFileTable *oft;
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 

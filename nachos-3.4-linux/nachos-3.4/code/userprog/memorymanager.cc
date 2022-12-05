@@ -18,7 +18,7 @@
 
 MemoryManager::MemoryManager() {
 
-    mmLock = new Lock("memory manager lock");
+    mmLock = new Semaphore("memory manager lock", 1);
     bitmap = new BitMap(NumPhysPages);
 
 }
@@ -32,6 +32,7 @@ MemoryManager::MemoryManager() {
 MemoryManager::~MemoryManager() {
 
     delete bitmap;
+    delete mmLock;
 
 }
 
@@ -46,10 +47,10 @@ MemoryManager::~MemoryManager() {
 int MemoryManager::AllocatePage() {
 
     // allocate page in a synchronized fashion
-    mmLock->Acquire();
+    mmLock->P();
     int page_number = bitmap->Find();
     ASSERT(page_number != -1);  // TODO - don't use assert
-    mmLock->Release();
+    mmLock->V();
 
     return page_number;
 
@@ -70,9 +71,9 @@ int MemoryManager::DeallocatePage(int which) {
     if(bitmap->Test(which) == false) return -1;
     else {
         // deallocate the page in a synchronized way
-        mmLock->Acquire();
+        mmLock->P();
         bitmap->Clear(which);
-        mmLock->Release();
+        mmLock->V();
         return 0;
     }
 

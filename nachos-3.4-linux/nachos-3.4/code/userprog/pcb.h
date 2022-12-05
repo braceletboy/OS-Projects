@@ -2,6 +2,8 @@
 #define PCB_H
 
 #include "list.h"
+#include "bitmap.h"
+#include "ofd.h"
 
 class PCB
 {
@@ -22,10 +24,18 @@ public:
                      //  from another process, -1 means exited unsuccessfully,
                      //  any other value means exited successfully
 
+    int AllocateFD(char *fileName);
+    void DeallocateFD(int fid);
+    OFD *GetOFD(int fid);
+
 private:
     int pid;
     PCB *parent;
     List *children;
+
+    BitMap *bitmap;  // marks the FDs already taken
+    OFD **ofds;  // pointer to the array of open file descriptors
+        // in this array, the index is the file descriptor of the OFD
 };
 
 #endif // PCB_H

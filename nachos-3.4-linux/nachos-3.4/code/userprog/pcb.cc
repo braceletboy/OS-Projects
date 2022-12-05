@@ -17,6 +17,21 @@ PCB::PCB(int id)
         parent = currentThread->space->pcb;
     children = new List();
     exitStatus = -9999; // hasn't exited
+
+    bitmap = new BitMap(MAX_PROC_OFDS);
+    ofds = new OFD*[MAX_PROC_OFDS];
+
+    // file ids (file descriptors) 1 & 2 are always allocated to
+    // STDIN and STDOUT respectively
+    ofds[0] = oft->AllocateOFD("STDIN", true);
+    bitmap->Mark(0);
+    ofds[1] = oft->AllocateOFD("STDOUT", true);
+    bitmap->Mark(1);
+
+    for(int i = 2; i < MAX_PROC_OFDS; i++)
+    {
+        ofds[i] = NULL;
+    }
 }
 
 //--------------------------------------------------------------------
@@ -105,6 +120,11 @@ void PCB::SetParent(PCB *new_parent)
     parent = new_parent;
 }
 
+//----------------------------------------------------------------------
+// PCB::DeleteExitedChildrenSetParentNull
+//  Delete the exited children of the pcb and set the parent of the rest
+//  to NULL.
+//----------------------------------------------------------------------
 void PCB::DeleteExitedChildrenSetParentNull()
 {
     PCB *child = (PCB *)children->Remove();
@@ -116,4 +136,44 @@ void PCB::DeleteExitedChildrenSetParentNull()
             child->SetParent(NULL);
         child = (PCB *)children->Remove();
     }
+}
+
+//----------------------------------------------------------------------
+// PCB::AllocateFD
+//  Return the file descriptor (file id) allocated
+//
+//  "fileName" is the name of the file
+//----------------------------------------------------------------------
+int PCB::AllocateFD(char *fileName)
+{
+    int fid = bitmap->Find();
+    if(fid != -1)
+    {
+        ofds[fid] = oft->AllocateOFD(fileName);
+    }
+    return fid;
+}
+
+//----------------------------------------------------------------------
+// PCB::DeallocateFD
+//  Remove the given file descriptor (file id)
+//----------------------------------------------------------------------
+void PCB::DeallocateFD(int fid)
+{
+    if(fid < 0) return;
+
+    bitmap->Clear(fid);
+    OFD *ofd = ofds[fid];
+    oft->DeallocateOFD(ofd);
+    ofds[fid] = NULL;
+}
+
+//----------------------------------------------------------------------
+// PCB::GetOFD
+//  Get the  (file id)
+//----------------------------------------------------------------------
+OFD *PCB::GetOFD(int fid)
+{
+    if(fid < 0) return NULL;
+    return ofds[fid];
 }

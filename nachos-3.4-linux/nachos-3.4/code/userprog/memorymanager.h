@@ -16,7 +16,7 @@ class MemoryManager {
 
     private:
         BitMap *bitmap;
-        Lock *mmLock;
+        Semaphore *mmLock;
 };
 
 

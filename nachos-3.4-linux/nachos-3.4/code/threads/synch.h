@@ -18,8 +18,10 @@
 #define SYNCH_H
 
 #include "copyright.h"
-#include "thread.h"
 #include "list.h"
+#ifndef USER_PROGRAM
+#include "thread.h"
+#endif
 
 // The following class defines a "semaphore" whose value is a non-negative
 // integer.  The semaphore has only two operations P() and V():
@@ -61,13 +63,14 @@ class Semaphore {
 //
 // In addition, by convention, only the thread that acquired the lock
 // may release it.  As with semaphores, you can't read the lock value
-// (because the value might change immediately after you read it).  
+// (because the value might change immediately after you read it).
 
 class Lock {
   public:
     Lock(const char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
-#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* getName() { return name; }
 #else
     char* getName() { return name; }	// debugging assist
@@ -82,9 +85,14 @@ class Lock {
 					// Condition variable ops below.
 
   private:
-#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* name;  // for debugging
+#ifdef USER_PROGRAM
+    int acquiredPID;  // pid of the thread that acquired the lock
+#else
     Thread *acquiredThread;  // thread that acquired the lock
+#endif
     List *queue;      // threads waiting to acquire the lock
 #else
     char* name;				// for debugging
@@ -129,7 +137,8 @@ class Condition {
     Condition(const char* debugName);		// initialize condition to 
 					// "no one waiting"
     ~Condition();			// deallocate the condition
-#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* getName() { return (name); }
 #else
     char* getName() { return (name); }
@@ -144,7 +153,8 @@ class Condition {
 					// these operations
 
   private:
-#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
     const char* name;
     List *queue;
 #else

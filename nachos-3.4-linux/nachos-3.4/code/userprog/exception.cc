@@ -36,7 +36,7 @@
 
 void doExit(int status) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Exit\n", pid);
+    printf("System Call: [%d] invoked Exit\n", pid);
 
     // 1. Set the exit status
     currentThread->space->pcb->exitStatus = status;
@@ -52,7 +52,7 @@ void doExit(int status) {
     delete currentThread->space;
 
     // 5. Delete thread of execution
-    printf("Process %d exits with status %d\n", pid, status);
+    printf("Process [%d] exits with status [%d]\n", pid, status);
     currentThread->Finish();
 
 }
@@ -80,21 +80,40 @@ void startChildProcess(int dummy) {
 
 int doFork(int functionAddr) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Fork\n", pid);
+    printf("System Call: [%d] invoked Fork\n", pid);
 
-    // 1. Allocate an address space for the forked process
+    // 1. Allocate a pcb for the forked process
+    PCB* pcb = pcbManager->AllocatePCB();
+    if(pcb == NULL)
+    {
+        DEBUG(
+            'e', "Process [%d] Fork: failed. Maximum PCB limit reached.", pid
+        );
+        return -1;
+    }
+
+    // 2. Allocate an address space for the forked process
     AddrSpace* childAddrSpace = new AddrSpace(*(currentThread->space));
     if (!childAddrSpace->IsValid())
     {
-        DEBUG('e', "Process %d Fork: failed", pid);
+        DEBUG(
+            'e',
+            "Process [%d] Fork: failed. Insufficient memory for "
+            "address space",
+            pid
+        );
+
+        // clean up
+        pcbManager->DeallocatePCB(pcb);
+        delete childAddrSpace;
+
         return -1;
     }
-    printf("Process %d Fork: start at address 0x%08X with %d pages memory\n",
-            pid, functionAddr, childAddrSpace->GetNumPages()
+    printf(
+        "Process [%d] Fork: start at address 0x%08X with %d "
+        "pages memory\n",
+        pid, functionAddr, childAddrSpace->GetNumPages()
     );
-
-    // 2. Allocate a pcb for the forked process
-    PCB* pcb = pcbManager->AllocatePCB();
     childAddrSpace->pcb = pcb;
 
     // 3. Allocate a thread for the forked process
@@ -139,27 +158,41 @@ int doFork(int functionAddr) {
 
 int doExec(char* filename) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Exec\n", pid);
+    printf("System Call: [%d] invoked Exec\n", pid);
     AddrSpace *current_addrspace = currentThread->space;
 
     // 1. Read the executable
     OpenFile *executable = fileSystem->Open(filename);
     if (executable == NULL)
     {
-        DEBUG('e', "Unable to open file %s\n", filename);
+        DEBUG('e', "Process [%d] Exec: failed. Unable to open file %s\n",
+                pid, filename);
         return -1;
     }
 
-    printf("Exec Program: %d loading %s\n", pid, filename);
+    printf("Exec Program: [%d] loading %s\n", pid, filename);
 
     // 2. Replace the process memory with the content of the executable
     PCB *current_pcb = current_addrspace->pcb;
     delete current_addrspace;
 
     AddrSpace *executable_addrspace = new AddrSpace(executable);
-    if(!executable_addrspace->IsValid()) return -1;
     executable_addrspace->pcb = current_pcb;
     currentThread->space = executable_addrspace;
+    if(!executable_addrspace->IsValid())
+    {
+        DEBUG(
+            'e',
+            "Process [%d] Exec: failed. Insufficient memory "
+            "for address space",
+            pid
+        );
+
+        // clean up
+        doExit(-1);
+
+        return -1;
+    }
 
     delete executable;
 
@@ -181,12 +214,12 @@ int doExec(char* filename) {
 
 int doJoin(int join_pid) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Join\n", pid);
+    printf("System Call: [%d] invoked Join\n", pid);
 
     // 1. Check if process joining on itself
     if(join_pid == pid)
     {
-        printf("Process %d trying to join on itself: note allowed\n",
+        DEBUG('e', "Process [%d] trying to join on itself: not allowed\n",
                join_pid);
         return -9999;
     }
@@ -195,7 +228,7 @@ int doJoin(int join_pid) {
     PCB *join_pcb = pcbManager->GetPCB(join_pid);
     if(join_pcb == NULL)
     {
-        DEBUG('e', "Process %d cannot join process %d: doesn't exist\n",
+        DEBUG('e', "Process [%d] cannot join process [%d]: doesn't exist\n",
                 pid, join_pid);
         return -1;
     }
@@ -204,7 +237,7 @@ int doJoin(int join_pid) {
     PCB *jp_parent_pcb = join_pcb->GetParent();
     if((jp_parent_pcb  == NULL) || (jp_parent_pcb->GetPID() != pid))
     {
-        DEBUG('e', "Non parent %d trying to join on %d: not allowed\n",
+        DEBUG('e', "Non parent [%d] trying to join on [%d]: not allowed\n",
               pid, join_pid);
         return -9999;
     }
@@ -222,7 +255,7 @@ int doJoin(int join_pid) {
 
 int doKill (int kill_pid) {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Kill\n", pid);
+    printf("System Call: [%d] invoked Kill\n", pid);
 
     // 1. Call Exit if the to be killed process is same as current process
     if(kill_pid == pid)
@@ -237,7 +270,7 @@ int doKill (int kill_pid) {
         // 2. Check if the process to be killed exists
         if(killed_pcb == NULL)
         {
-            printf("Process %d cannot kill process %d: doesn't exist\n",
+            printf("Process [%d] cannot kill process [%d]: doesn't exist\n",
                    pid, kill_pid);
             return -1;
         }
@@ -259,7 +292,7 @@ int doKill (int kill_pid) {
         // 6. Delete thread of execution
         delete kp_thread;
 
-        printf("Process %d killed process %d\n", pid, kill_pid);
+        printf("Process [%d] killed process [%d]\n", pid, kill_pid);
         return 0;
     }
 }
@@ -271,7 +304,7 @@ int doKill (int kill_pid) {
 
 void doYield() {
     int pid = currentThread->space->pcb->GetPID();
-    printf("System Call: %d invoked Yield\n", pid);
+    printf("System Call: [%d] invoked Yield\n", pid);
     currentThread->Yield();
 }
 
@@ -317,26 +350,127 @@ char* readString(int virtualAddr) {
     return str;
 }
 
-void doCreate(char* fileName)
-{
-    printf("Syscall Call: [%d] invoked Create.\n", currentThread->space->pcb->GetPID());
-    fileSystem->Create(fileName, 0);
+//----------------------------------------------------------------------
+// doCreate
+//  Helper function for the create system call.
+//
+//  "fileName" is the file we want to create.
+//----------------------------------------------------------------------
+
+void doCreate(char* fileName) {
+    printf("Syscall Call: [%d] invoked Create.\n",
+            currentThread->space->pcb->GetPID());
+    char path[256] = "../test/";
+    strcat((char *) path, fileName);
+    fileSystem->Create(path, 0);
 }
 
+//----------------------------------------------------------------------
+// doOpen
+//  Helper function for the open system call.
+//
+//  "fileName" is the filename to open.
+//
+//  Return the file id of the opened file if successful else -1
+//----------------------------------------------------------------------
 
-void doOpen(char* filename)
-{
-    // Check if file already open - process open files list - change PCB
-    // If not open, check if file is opened on system wide, if not then open
-    // Otherwise, just create a new entry for process open files pointing to system open file
-    // -> Implement system-wide open files manager
-    // return ID
+OpenFileId doOpen(char* fileName) {
+    printf("Syscall Call: [%d] invoked Open.\n",
+            currentThread->space->pcb->GetPID());
+    char path[256] = "../test/";
+    strcat((char *) path, fileName);
+    int fid = currentThread->space->pcb->AllocateFD(path);
+    return (OpenFileId) fid;
 }
 
-void doWrite(char *buffer, int size, OpenFileId id)
-{
-    // Transfer data from user program to buffer - need to implement a function
-    // Write from buffer to file using openfile
+//----------------------------------------------------------------------
+// doRead
+//  Helper function for the read system call
+//
+//  "virtAddr" is the virtual address to start reading into
+//  "nBytes" is the number of bytes to read
+//  "id" is the id (file descriptor) of the file we want to read
+//
+//  Returns the number of bytes read if successful else -1
+//
+//  The number of bytes read can be smaller than nBytes when reading
+//  at the end of the file
+//----------------------------------------------------------------------
+
+int doRead(int virtAddr, int nBytes, OpenFileId id) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("Syscall Call: [%d] invoked Read.\n", pid);
+
+    ASSERT(virtAddr > 0);
+
+    if(nBytes < 0)
+    {
+        DEBUG('e', "Process [%d] Read: failed. Invalid size argument", pid);
+    }
+
+    // 1. Get Open File Descriptor
+    OFD *ofd = currentThread->space->pcb->GetOFD((int) id);
+    if (ofd == NULL)
+    {
+        DEBUG('e', "Process [%d] Read: failed. File ID [%d] is invalid",
+                pid, id);
+        return -1;
+    }
+
+    // 2. Read from file
+    int readBytes = ofd->Read(virtAddr, nBytes);
+
+    return readBytes;
+}
+
+//----------------------------------------------------------------------------------------------------------------
+// doWrite
+//  Helper function for the write system call
+//
+//  "virtAddr" is the virtual address to start writing from
+//  "nBytes" is the number of bytes to write
+//  "id" is the id (file descriptor) of the file we want to write to
+//
+//  Returns the number of bytes written if successful else -1
+//----------------------------------------------------------------------
+
+int doWrite(int virtAddr, int nBytes, OpenFileId id) {
+    int pid = currentThread->space->pcb->GetPID();
+    printf("Syscall Call: [%d] invoked Write.\n", pid);
+
+    ASSERT(virtAddr > 0);
+
+    if(nBytes < 0)
+    {
+        DEBUG('e', "Process [%d] Read: failed. Invalid size argument", pid);
+    }
+
+    // 1. Get Open File Descriptor
+    OFD *ofd = currentThread->space->pcb->GetOFD((int) id);
+    if (ofd == NULL)
+    {
+        DEBUG('e', "Process [%d] Read: failed. File ID [%d] is invalid",
+                pid, id);
+        return -1;
+    }
+
+    // 3. Write to file
+    int writeBytes = ofd->Write(virtAddr, nBytes);
+
+    return writeBytes;
+}
+
+//----------------------------------------------------------------------
+// doClose
+//  Helper function for the close system call
+//
+//  "id" is the ID of the file we want to close
+//----------------------------------------------------------------------
+
+void doClose(OpenFileId id) {
+    printf("Syscall Call: [%d] invoked Close.\n",
+            currentThread->space->pcb->GetPID());
+    currentThread->space->pcb->DeallocateFD((int) id);
 }
 
 //----------------------------------------------------------------------
@@ -371,8 +505,8 @@ ExceptionHandler(ExceptionType which)
 	DEBUG('e', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
     } else  if ((which == SyscallException) && (type == SC_Exit)) {
-        // Implement Exit system call
         doExit(machine->ReadRegister(4));
+        incrementPC();  // should never reach here
     } else if ((which == SyscallException) && (type == SC_Fork)) {
         int ret = doFork(machine->ReadRegister(4));
         machine->WriteRegister(2, ret);
@@ -396,8 +530,32 @@ ExceptionHandler(ExceptionType which)
         incrementPC();
     } else if((which == SyscallException) && (type == SC_Create)) {
         int virtAddr = machine->ReadRegister(4);
-        char* fileName = readString(virtAddr);
+        char *fileName = readString(virtAddr);
         doCreate(fileName);
+        incrementPC();
+    } else if((which == SyscallException) && (type == SC_Open)) {
+        int virtAddr = machine->ReadRegister(4);
+        char *fileName = readString(virtAddr);
+        OpenFileId fid = doOpen(fileName);
+        machine->WriteRegister(2, fid);
+        incrementPC();
+    } else if((which == SyscallException) && (type == SC_Write)) {
+        int bufferVirtAddr = machine->ReadRegister(4);
+        int nBytes = machine->ReadRegister(5);
+        OpenFileId fid = machine->ReadRegister(6);
+        int writeBytes = doWrite(bufferVirtAddr, nBytes, fid);
+        machine->WriteRegister(2, writeBytes);
+        incrementPC();
+    } else if((which == SyscallException) && (type == SC_Read)) {
+        int bufferVirtAddr = machine->ReadRegister(4);
+        int nBytes = machine->ReadRegister(5);
+        OpenFileId fid = machine->ReadRegister(6);
+        int readBytes = doRead(bufferVirtAddr, nBytes, fid);
+        machine->WriteRegister(2, readBytes);
+        incrementPC();
+    } else if((which == SyscallException) && (type == SC_Close)) {
+        OpenFileId fid = machine->ReadRegister(4);
+        doClose(fid);
         incrementPC();
     } else {
 	printf("Unexpected user mode exception %d %d\n", which, type);

@@ -97,7 +97,8 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_LOCKS) || defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
 //----------------------------------------------------------------------
 // Lock::Lock
 //  Initialize a lock, so that it can be used for synchronization.
@@ -107,7 +108,11 @@ Semaphore::V()
 Lock::Lock(const char* debugName)
 {
     name = debugName;
+#ifdef USER_PROGRAM
+    acquiredPID = -1;
+#else
     acquiredThread = NULL;
+#endif
     queue = new List;
 }
 
@@ -139,12 +144,20 @@ void Lock::Acquire()
 {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
+#ifdef USER_PROGRAM
+    while(acquiredPID != -1)
+#else
     while (acquiredThread != NULL)
+#endif
     {
         queue->Append((void *) currentThread);  // lock is BUSY
         currentThread->Sleep();                 // so put to sleep
     }
+#ifdef USER_PROGRAM
+    acquiredPID = currentThread->space->pcb->GetPID();
+#else
     acquiredThread = currentThread;             // lock available
+#endif
 
     (void) interrupt->SetLevel(oldLevel);  // ignore output - so cast to void
 }
@@ -165,7 +178,11 @@ void Lock::Release()
 
     thread = (Thread *)queue->Remove();
     if (thread != NULL) scheduler->ReadyToRun(thread);
+#ifdef USER_PROGRAM
+    acquiredPID = -1;
+#else
     acquiredThread = NULL;   // lock is free
+#endif
 
     (void) interrupt->SetLevel(oldLevel);
 }
@@ -178,7 +195,11 @@ void Lock::Release()
 
 bool Lock::isHeldByCurrentThread()
 {
+#ifdef USER_PROGRAM
+    return (currentThread->space->pcb->GetPID() == acquiredPID);
+#else
     return (currentThread == acquiredThread);
+#endif
 }
 
 #else
@@ -191,7 +212,8 @@ void Lock::Acquire() {}
 void Lock::Release() {}
 #endif
 
-#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR)
+#if defined(HW1_CONDITIONS) || defined(HW1_ELEVATOR) ||\
+    defined(USER_PROGRAM) || defined(FILESYS)
 //----------------------------------------------------------------------
 // Condition::Condition(const char* debugName)
 // 	Initialize a condition variable, so that it can be used for
